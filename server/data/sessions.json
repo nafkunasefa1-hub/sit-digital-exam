@@ -1,0 +1,39 @@
+{
+  "594890": {
+    "pin": "594890",
+    "examId": "exam_cs301_final",
+    "examTitle": "CS-301: Computer Architecture & Network Security Final Exam",
+    "courseCode": "CS-301",
+    "roomName": "Main Campus Hall - Section B",
+    "durationMinutes": 90,
+    "status": "ACTIVE",
+    "startTime": "2026-10-12T17:09:53.621Z",
+    "endTime": null,
+    "allowedSubnet": "",
+    "students": {
+      "SIT-ST-2030-00013": {
+        "studentId": "SIT-ST-2030-00013",
+        "studentName": "NAFKUN ASEFA",
+        "seatNumber": "ROW B-13",
+        "deviceInfo": {
+          "os": "Windows",
+          "platform": "Laptop",
+          "battery": 92
+        },
+        "status": "DISCONNECTED",
+        "isSuspended": false,
+        "joinedAt": "2026-10-12T17:31:43.174Z",
+        "lastHeartbeat": "2026-10-12T17:55:55.169Z",
+        "currentQuestionIndex": 0,
+        "answeredCount": 1,
+        "violationsCount": 0,
+        "violations": [],
+        "extraTimeGrantedMinutes": 0,
+        "warningMessage": null
+      }
+    },
+    "createdAt": "2026-10-12T17:09:53.621Z",
+    "maxViolations": 3,
+    "autoSuspend": true
+  }
+}

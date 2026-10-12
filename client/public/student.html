@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SIT Student Exam Room - Shegger Institute of Technology</title>
+  <link rel="icon" type="image/png" href="/sit-logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- KaTeX for Engineering & Technology LaTeX Math Formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    * { -webkit-touch-callout: none; }
+    textarea, input[type="text"] {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .watermark-overlay {
+      background-image: url('/sit-logo.png');
+      background-repeat: repeat;
+      background-size: 280px 280px;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative" oncontextmenu="return false;">
+
+  <!-- Subtle Institution Security Watermark -->
+  <div class="fixed inset-0 watermark-overlay z-0"></div>
+
+  <!-- Hidden elements for camera snapshotting -->
+  <video id="hiddenCameraVideo" autoplay playsinline muted class="hidden"></video>
+  <canvas id="hiddenSnapshotCanvas" class="hidden"></canvas>
+
+  <!-- ============================================================== -->
+  <!-- INESCAPABLE SUSPENSION QUARANTINE MODAL (3 VIOLATIONS)         -->
+  <!-- ============================================================== -->
+  <div id="examSuspensionModal" class="fixed inset-0 bg-red-950/98 backdrop-blur-lg z-[200] flex flex-col items-center justify-center p-6 text-center hidden">
+    <div class="w-24 h-24 rounded-3xl bg-red-600/30 border-4 border-red-500 flex items-center justify-center text-red-400 text-5xl mb-6 animate-pulse">
+      <i class="fa-solid fa-ban"></i>
+    </div>
+    <div class="flex items-center space-x-2 mb-2">
+      <img src="/sit-logo.png" alt="SIT Logo" class="w-7 h-7 rounded-full object-contain">
+      <span class="text-xs uppercase font-bold tracking-widest text-red-300">Shegger Institute of Technology</span>
+    </div>
+    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">EXAM SUSPENDED BY SYSTEM</h2>
+    <p class="text-sm sm:text-base text-red-200 max-w-lg mb-6 leading-relaxed">
+      You have committed <strong>3 violations</strong> of the examination lockdown policy (focus loss, app minimization, or leaving fullscreen). Your session is currently locked.
+    </p>
+    <div class="bg-black/50 border border-red-500/40 rounded-2xl p-4 mb-8 font-mono text-xs text-red-300 max-w-md w-full text-left space-y-1.5">
+      <div>Status: <span class="text-red-400 font-bold">SUSPENDED / IN QUARANTINE</span></div>
+      <div>Alert: <span class="text-white">Forwarded to SIT Administrator</span></div>
+      <div class="text-[11px] text-red-400/80 pt-2 border-t border-red-900/50">Raise your hand to request an invigilator review. Your screen will automatically unlock if the Administrator lifts the suspension.</div>
+    </div>
+    <div class="flex items-center space-x-2 text-xs text-red-400/80 animate-pulse">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span>Awaiting Administrator Decision...</span>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- WARNING MODAL (1 OR 2 VIOLATIONS)                              -->
+  <!-- ============================================================== -->
+  <div id="lockdownBreachModal" class="fixed inset-0 bg-red-950/95 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-6 text-center hidden">
+    <div class="w-20 h-20 rounded-2xl bg-red-600/30 border-2 border-red-500 flex items-center justify-center text-red-400 text-4xl mb-6 animate-bounce">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">LOCKDOWN BREACH DETECTED</h2>
+    <p class="text-xs sm:text-sm text-red-200 max-w-md mb-4 leading-relaxed" id="breachModalReason">
+      You have exited full-screen kiosk mode, minimized the app, or switched applications. This event has been permanently recorded in the administrator's audit log.
+    </p>
+    <div class="bg-black/40 border border-red-500/40 rounded-xl px-6 py-2.5 mb-6 font-mono text-xs text-red-300">
+      Violations Recorded: <strong class="text-white text-base" id="breachViolationsCount">1</strong> / <strong class="text-white text-base">3</strong>
+      <div class="text-[10px] text-red-400 mt-0.5">3rd violation results in automatic suspension!</div>
+    </div>
+    <button onclick="requestKioskFullscreen()" class="px-8 py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-xl shadow-red-600/30 transition-all text-xs sm:text-sm flex items-center space-x-2">
+      <i class="fa-solid fa-expand"></i>
+      <span>Re-enter Full-Screen Mode Now</span>
+    </button>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- IN-APP SCIENTIFIC CALCULATOR MODAL (FOR SIT STUDENTS)          -->
+  <!-- ============================================================== -->
+  <div id="calculatorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-calculator text-indigo-400 text-sm"></i>
+          <span class="text-xs font-bold text-white uppercase tracking-wider">SIT Scientific Calc</span>
+        </div>
+        <button onclick="toggleCalculator()" class="text-slate-400 hover:text-white text-xs p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 mb-3 text-right">
+        <div class="text-[10px] text-slate-500 font-mono h-3" id="calcHistory"></div>
+        <div class="text-xl font-bold font-mono text-white tracking-wider truncate" id="calcDisplay">0</div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 text-xs font-mono font-semibold">
+        <button onclick="calcClear()" class="p-2.5 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30">C</button>
+        <button onclick="calcOp('(')" class="p-2.5 rounded-lg bg-slate-800 text-slate-300">(</button>
+        <button onclick="calcOp(')')" class="p-2.5 rounded-lg bg-slate-800 text-slate-300">)</button>
+        <button onclick="calcOp('/')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">/</button>
+
+        <button onclick="calcNum('7')" class="p-2.5 rounded-lg bg-slate-800 text-white">7</button>
+        <button onclick="calcNum('8')" class="p-2.5 rounded-lg bg-slate-800 text-white">8</button>
+        <button onclick="calcNum('9')" class="p-2.5 rounded-lg bg-slate-800 text-white">9</button>
+        <button onclick="calcOp('*')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">&times;</button>
+
+        <button onclick="calcNum('4')" class="p-2.5 rounded-lg bg-slate-800 text-white">4</button>
+        <button onclick="calcNum('5')" class="p-2.5 rounded-lg bg-slate-800 text-white">5</button>
+        <button onclick="calcNum('6')" class="p-2.5 rounded-lg bg-slate-800 text-white">6</button>
+        <button onclick="calcOp('-')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">-</button>
+
+        <button onclick="calcNum('1')" class="p-2.5 rounded-lg bg-slate-800 text-white">1</button>
+        <button onclick="calcNum('2')" class="p-2.5 rounded-lg bg-slate-800 text-white">2</button>
+        <button onclick="calcNum('3')" class="p-2.5 rounded-lg bg-slate-800 text-white">3</button>
+        <button onclick="calcOp('+')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">+</button>
+
+        <button onclick="calcNum('0')" class="col-span-2 p-2.5 rounded-lg bg-slate-800 text-white">0</button>
+        <button onclick="calcNum('.')" class="p-2.5 rounded-lg bg-slate-800 text-white">.</button>
+        <button onclick="calcEquals()" class="p-2.5 rounded-lg bg-indigo-600 text-white font-bold">=</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- REMOTE ADMIN WARNING POPUP                                     -->
+  <!-- ============================================================== -->
+  <div id="invigilatorWarningModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] flex items-center justify-center p-6 text-center hidden">
+    <div class="bg-slate-900 border-2 border-amber-500 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+      <div class="w-14 h-14 mx-auto rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-2xl mb-4">
+        <i class="fa-solid fa-bullhorn"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white mb-2">Message From Administrator</h3>
+      <p class="text-sm text-slate-300 mb-6 bg-slate-950 p-4 rounded-xl border border-slate-800" id="invigilatorWarningText">
+        Please look directly at your screen.
+      </p>
+      <button onclick="dismissStudentWarning()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl transition-all">
+        I Acknowledge and Understand
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- STEP 1: PRE-EXAM CHECK-IN & ID PHOTO VERIFICATION              -->
+  <!-- ============================================================== -->
+  <div id="checkInScreen" class="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-md mx-auto w-full z-10">
+    <div class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-7 shadow-2xl backdrop-blur-md">
+      
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-800/80 border border-indigo-500/30 p-1 flex items-center justify-center shadow-lg mb-3">
+          <img src="/sit-logo.png" alt="SIT Logo" class="w-full h-full object-contain rounded-xl">
+        </div>
+        <h2 class="text-2xl font-extrabold text-white">SIT Exam Check-In</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Shegger Institute of Technology &bull; Verification Gate</p>
+      </div>
+
+      <!-- Distraction / Notification Warning Tip -->
+      <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl mb-4 text-[11px] text-indigo-300 flex items-start space-x-2">
+        <i class="fa-solid fa-bell-slash text-indigo-400 mt-0.5"></i>
+        <span><strong>Anti-Distraction Tip:</strong> Turn ON "Do Not Disturb" or Focus Mode on your phone/PC so incoming calls or notifications don't cause accidental focus loss!</span>
+      </div>
+
+      <form onsubmit="handleStudentCheckIn(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Hall Session PIN</label>
+          <input type="text" id="inputSessionPin" required maxlength="6" placeholder="e.g. 594890" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-center text-xl font-mono font-bold tracking-widest text-indigo-400 focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">SIT Student ID</label>
+            <input type="text" id="inputStudentId" required placeholder="SIT-2024-1042" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Seat Number</label>
+            <input type="text" id="inputSeatNumber" required placeholder="Row B-14" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Full Legal Name</label>
+          <input type="text" id="inputStudentName" required placeholder="Abebe Bikila" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <!-- Camera Verification Card (Selfie / ID Badge) -->
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-camera text-indigo-400"></i>
+              <span>Face & ID Verification Scan</span>
+            </span>
+            <span id="photoScanStatus" class="text-[10px] text-amber-400 font-mono">Camera Ready</span>
+          </div>
+
+          <div class="relative w-full h-32 bg-slate-900 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center">
+            <video id="viewfinderVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            <img id="capturedPhotoPreview" class="w-full h-full object-cover hidden">
+            
+            <div id="cameraGuideOverlay" class="absolute inset-0 border-2 border-dashed border-indigo-500/50 rounded-lg pointer-events-none flex items-center justify-center">
+              <span class="text-[10px] text-indigo-300/80 bg-black/60 px-2 py-0.5 rounded">Align Face or ID Card</span>
+            </div>
+          </div>
+
+          <div class="flex space-x-2">
+            <button type="button" onclick="startCamera()" id="btnStartCam" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors">
+              <i class="fa-solid fa-video mr-1"></i> Start Camera
+            </button>
+            <button type="button" onclick="captureIdPhoto()" id="btnSnapPhoto" class="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-md transition-colors">
+              <i class="fa-solid fa-camera-retro mr-1"></i> Snap Photo
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="btnStartExam" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm flex items-center justify-center space-x-2">
+          <span>Lock Device & Enter Exam</span>
+          <i class="fa-solid fa-lock text-xs"></i>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- STEP 2: ACTIVE EXAM RUNNER VIEW                                -->
+  <!-- ============================================================== -->
+  <div id="examRunnerScreen" class="flex-1 flex flex-col hidden z-10">
+    
+    <!-- Top Locked Header -->
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 sm:px-8 py-2.5 flex items-center justify-between sticky top-0 z-30">
+      
+      <div class="flex items-center space-x-3">
+        <img src="/sit-logo.png" alt="SIT Logo" class="w-9 h-9 rounded-full object-contain border border-indigo-500/30 bg-slate-950 p-0.5">
+        <div>
+          <div class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span id="runnerStudentName">Student Name</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-600/30 text-indigo-300 font-mono">SIT</span>
+          </div>
+          <div class="text-[10px] text-slate-400 font-mono" id="runnerStudentId">SIT-1001 &bull; Seat B-12</div>
+        </div>
+      </div>
+
+      <!-- Center Countdown Timer -->
+      <div class="flex items-center space-x-2 bg-slate-950 border border-slate-800 px-4 py-1.5 rounded-xl shadow-inner">
+        <i class="fa-regular fa-clock text-indigo-400 text-xs"></i>
+        <span class="text-xs text-slate-400 font-medium">Time Left:</span>
+        <span class="text-sm sm:text-base font-extrabold text-white font-mono" id="runnerTimer">00:00:00</span>
+      </div>
+
+      <!-- Tools & Submit -->
+      <div class="flex items-center space-x-2.5">
+        <button onclick="toggleCalculator()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-semibold rounded-lg border border-slate-700 transition-colors flex items-center space-x-1.5">
+          <i class="fa-solid fa-calculator text-xs"></i>
+          <span class="hidden sm:inline">Calculator</span>
+        </button>
+
+        <div class="hidden md:flex items-center space-x-1.5 text-[11px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+          <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+          <span id="saveStatus">Saved</span>
+        </div>
+        
+        <button onclick="confirmSubmitExam()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-md transition-all flex items-center space-x-1.5">
+          <span>Submit</span>
+          <i class="fa-solid fa-paper-plane text-[10px]"></i>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 max-w-6xl mx-auto w-full p-4 sm:p-8 flex flex-col md:flex-row gap-6">
+      
+      <!-- Left: Active Question Card -->
+      <div class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-xl relative overflow-hidden">
+        
+        <!-- Subtle watermark stamp -->
+        <div class="absolute right-4 bottom-4 opacity-5 pointer-events-none">
+          <img src="/sit-logo.png" alt="Watermark" class="w-48 h-48 object-contain">
+        </div>
+
+        <div>
+          <!-- Question Header -->
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-6">
+            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider" id="qHeaderNumber">Question 1 of 7</span>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-mono" id="qHeaderPoints">10 Points</span>
+          </div>
+
+          <!-- Question Prompt (with KaTeX Math Support) -->
+          <h3 class="text-base sm:text-lg font-bold text-white mb-6 leading-relaxed katex-render" id="qPrompt">
+            Loading question...
+          </h3>
+
+          <!-- Options or Text Area Container -->
+          <div id="qAnswerContainer" class="space-y-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex items-center justify-between border-t border-slate-800/80 pt-6 mt-8">
+          <button onclick="prevQuestion()" id="btnPrev" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-2">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+            <span>Previous</span>
+          </button>
+          
+          <button onclick="toggleFlagCurrentQuestion()" id="btnFlag" class="px-3 py-2 text-slate-400 hover:text-amber-400 text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+            <i class="fa-regular fa-bookmark"></i>
+            <span>Review Later</span>
+          </button>
+
+          <button onclick="nextQuestion()" id="btnNext" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-md transition-all flex items-center space-x-2">
+            <span>Next</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Right Sidebar: Palette & Scratchpad -->
+      <div class="w-full md:w-72 space-y-6">
+        
+        <!-- Palette -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Question Navigator</h4>
+          <div id="questionPalette" class="grid grid-cols-5 gap-2">
+            <!-- Rendered -->
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-2 text-[10px] text-slate-400">
+            <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded bg-indigo-600"></span><span>Answered</span></div>
+            <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded bg-amber-500"></span><span>Flagged</span></div>
+            <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded bg-slate-800 border border-slate-700"></span><span>Unanswered</span></div>
+          </div>
+        </div>
+
+        <!-- Scratchpad -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Scratchpad</h4>
+            <span class="text-[10px] text-slate-500">Private Notes</span>
+          </div>
+          <textarea id="scratchpadArea" placeholder="Type rough notes or formulas here..." rows="4" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none font-mono"></textarea>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- STEP 3: SUBMISSION RECEIPT SCREEN                              -->
+  <!-- ============================================================== -->
+  <div id="submissionSuccessScreen" class="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-md mx-auto w-full hidden z-10">
+    <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
+      
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-800 border border-emerald-500/40 p-1 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
+        <img src="/sit-logo.png" alt="SIT Seal" class="w-full h-full object-contain rounded-xl">
+      </div>
+      <span class="text-[10px] font-bold tracking-widest uppercase text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Verified Submission</span>
+      <h2 class="text-2xl font-bold text-white mt-2 mb-1">Exam Submitted Successfully</h2>
+      <p class="text-xs text-slate-400 mb-6">Shegger Institute of Technology &bull; Office of the Registrar</p>
+
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-left space-y-2 mb-6">
+        <div><span class="text-slate-500">Student:</span> <span class="text-white font-bold" id="receiptName">Sarah Connor</span></div>
+        <div><span class="text-slate-500">Institution:</span> <span class="text-indigo-300">Shegger Inst. of Technology</span></div>
+        <div><span class="text-slate-500">Submission Hash:</span> <span class="text-emerald-400" id="receiptHash">8f92a1...</span></div>
+        <div><span class="text-slate-500">Timestamp:</span> <span class="text-slate-300" id="receiptTimestamp">--</span></div>
+      </div>
+
+      <button onclick="exitExamKiosk()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl">
+        Release Lockdown & Return to Home
+      </button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    let studentId = '';
+    let studentName = '';
+    let seatNumber = '';
+    let sessionPin = '';
+    let examData = null;
+    let currentQIndex = 0;
+    let answers = {};
+    let flaggedQuestions = new Set();
+    let ws = null;
+    let examEndTime = null;
+    let timerInterval = null;
+    let violationsCount = 0;
+    let isExamActive = false;
+    let isSuspended = false;
+    let capturedIdPhotoData = null;
+    let cameraMediaStream = null;
+    let wakeLockSentinel = null;
+
+    // Calculator State
+    let calcExpression = '';
+    function toggleCalculator() {
+      document.getElementById('calculatorModal').classList.toggle('hidden');
+    }
+    function calcNum(num) {
+      if (calcExpression === '0' && num !== '.') calcExpression = '';
+      calcExpression += num;
+      document.getElementById('calcDisplay').textContent = calcExpression;
+    }
+    function calcOp(op) {
+      calcExpression += op;
+      document.getElementById('calcDisplay').textContent = calcExpression;
+    }
+    function calcClear() {
+      calcExpression = '0';
+      document.getElementById('calcDisplay').textContent = '0';
+      document.getElementById('calcHistory').textContent = '';
+    }
+    function calcEquals() {
+      try {
+        const sanitized = calcExpression.replace(/[^0-9+\-*/().]/g, '');
+        const result = Function(`'use strict'; return (${sanitized})`)();
+        document.getElementById('calcHistory').textContent = calcExpression + ' =';
+        calcExpression = String(result);
+        document.getElementById('calcDisplay').textContent = calcExpression;
+      } catch (e) {
+        document.getElementById('calcDisplay').textContent = 'Error';
+        calcExpression = '';
+      }
+    }
+
+    // ==============================================================
+    // CAMERA: CHECK-IN ID SCAN & PERIODIC PROCTORING SNAPSHOTS       -->
+    // ==============================================================
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 320 }, height: { ideal: 240 } },
+          audio: false
+        });
+        cameraMediaStream = stream;
+        const vf = document.getElementById('viewfinderVideo');
+        vf.srcObject = stream;
+        vf.classList.remove('hidden');
+        document.getElementById('capturedPhotoPreview').classList.add('hidden');
+        document.getElementById('cameraGuideOverlay').classList.remove('hidden');
+        document.getElementById('photoScanStatus').textContent = 'Camera Active';
+        document.getElementById('photoScanStatus').className = 'text-[10px] text-emerald-400 font-mono';
+      } catch (err) {
+        console.warn('Camera access denied or unavailable:', err);
+        document.getElementById('photoScanStatus').textContent = 'Camera Skipped';
+      }
+    }
+
+    function captureIdPhoto() {
+      const vf = document.getElementById('viewfinderVideo');
+      if (!cameraMediaStream || !vf.videoWidth) {
+        alert('Please start camera first or allow camera access.');
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 320;
+      canvas.height = 240;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(vf, 0, 0, 320, 240);
+
+      capturedIdPhotoData = canvas.toDataURL('image/jpeg', 0.6);
+
+      const preview = document.getElementById('capturedPhotoPreview');
+      preview.src = capturedIdPhotoData;
+      preview.classList.remove('hidden');
+      vf.classList.add('hidden');
+      document.getElementById('cameraGuideOverlay').classList.add('hidden');
+      document.getElementById('photoScanStatus').textContent = 'Photo Captured ✓';
+      document.getElementById('photoScanStatus').className = 'text-[10px] text-emerald-400 font-bold font-mono';
+    }
+
+    // Periodic silent snapshot (<15KB) every 60s
+    function takeSilentProctorSnapshot() {
+      if (!isExamActive || !cameraMediaStream) return;
+      try {
+        const vf = document.getElementById('viewfinderVideo');
+        const canvas = document.getElementById('hiddenSnapshotCanvas');
+        canvas.width = 240;
+        canvas.height = 180;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(vf, 0, 0, 240, 180);
+        const snapshotData = canvas.toDataURL('image/jpeg', 0.5);
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'STUDENT_SNAPSHOT',
+            sessionPin,
+            studentId,
+            snapshotImage: snapshotData
+          }));
+        }
+      } catch (e) {}
+    }
+
+    // Screen Wake Lock API (prevents phone/PC screen dimming)
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+        } catch (e) {}
+      }
+    }
+
+    // ==============================================================
+    // LOCKDOWN ENFORCER                                             -->
+    // ==============================================================
+
+    function initLockdownEngine() {
+      requestWakeLock();
+
+      document.addEventListener('fullscreenchange', () => {
+        if (!isExamActive || isSuspended) return;
+        if (!document.fullscreenElement) {
+          triggerSecurityViolation('FULLSCREEN_EXIT', 'Application exited full-screen kiosk mode.');
+        } else {
+          document.getElementById('lockdownBreachModal').classList.add('hidden');
+        }
+      });
+
+      window.addEventListener('blur', () => {
+        if (!isExamActive || isSuspended) return;
+        triggerSecurityViolation('FOCUS_LOST', 'Window lost active focus (Student clicked outside or switched apps).');
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!isExamActive || isSuspended) return;
+        if (document.visibilityState === 'hidden') {
+          triggerSecurityViolation('APP_MINIMIZED', 'Exam window was minimized or placed into background.');
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (!isExamActive || isSuspended) return;
+        if (
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+          (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+          (e.altKey && e.key === 'Tab')
+        ) {
+          e.preventDefault();
+          triggerSecurityViolation('DEVTOOLS', `Blocked forbidden key combination: ${e.key}`);
+          return false;
+        }
+      });
+    }
+
+    function triggerSecurityViolation(type, description) {
+      if (isSuspended) return;
+      violationsCount++;
+      document.getElementById('breachViolationsCount').textContent = violationsCount;
+      document.getElementById('breachModalReason').textContent = description;
+
+      // Also snap proctor photo immediately on infraction
+      takeSilentProctorSnapshot();
+
+      if (violationsCount >= 3) {
+        lockExamSuspended('Exceeded maximum violations limit (3). You switched apps or left fullscreen.');
+      } else {
+        document.getElementById('lockdownBreachModal').classList.remove('hidden');
+      }
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'STUDENT_VIOLATION',
+          sessionPin,
+          studentId,
+          violationType: type,
+          description: description,
+          timestamp: new Date().toISOString()
+        }));
+      }
+    }
+
+    function lockExamSuspended(reason) {
+      isSuspended = true;
+      document.getElementById('lockdownBreachModal').classList.add('hidden');
+      document.getElementById('calculatorModal').classList.add('hidden');
+      document.getElementById('examSuspensionModal').classList.remove('hidden');
+    }
+
+    function resumeExamFromSuspension() {
+      isSuspended = false;
+      document.getElementById('examSuspensionModal').classList.add('hidden');
+      requestKioskFullscreen();
+    }
+
+    async function requestKioskFullscreen() {
+      try {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          await docEl.webkitRequestFullscreen();
+        }
+        document.getElementById('lockdownBreachModal').classList.add('hidden');
+      } catch (err) {
+        document.getElementById('lockdownBreachModal').classList.add('hidden');
+      }
+    }
+
+    // ==============================================================
+    // CHECK-IN & CONNECT                                            -->
+    // ==============================================================
+
+    async function handleStudentCheckIn(e) {
+      e.preventDefault();
+      sessionPin = document.getElementById('inputSessionPin').value.trim();
+      studentId = document.getElementById('inputStudentId').value.trim();
+      studentName = document.getElementById('inputStudentName').value.trim();
+      seatNumber = document.getElementById('inputSeatNumber').value.trim();
+
+      await requestKioskFullscreen();
+
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}`);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'STUDENT_JOIN',
+          sessionPin,
+          studentId,
+          studentName,
+          seatNumber,
+          deviceInfo: { os: navigator.platform || 'Unknown', platform: 'Web', battery: 95 },
+          idPhoto: capturedIdPhotoData
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleServerMessage(msg);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('saveStatus').textContent = 'Reconnecting...';
+        setTimeout(() => handleStudentCheckIn(e), 4000);
+      };
+    }
+
+    function handleServerMessage(msg) {
+      if (msg.type === 'STUDENT_INIT_SUCCESS') {
+        if (!msg.exam) {
+          alert('Error: Exam data not found for this session PIN.');
+          return;
+        }
+
+        examData = msg.exam;
+        answers = msg.savedAnswers || {};
+
+        const durationMs = (msg.sessionInfo?.durationMinutes || 60) * 60 * 1000;
+        const startTime = new Date(msg.sessionInfo?.startTime || Date.now()).getTime();
+        examEndTime = startTime + durationMs;
+
+        startExamUI();
+
+        if (msg.isSuspended) {
+          lockExamSuspended('Session is currently suspended by Administrator.');
+        }
+      } else if (msg.type === 'STUDENT_JOIN_ERROR') {
+        alert(msg.error);
+      } else if (msg.type === 'EXAM_SUSPENDED') {
+        lockExamSuspended(msg.reason);
+      } else if (msg.type === 'EXAM_RESUMED') {
+        resumeExamFromSuspension();
+      } else if (msg.type === 'EXAM_FORCE_SUBMITTED') {
+        submitExamFinal();
+      } else if (msg.type === 'EXAM_DISQUALIFIED') {
+        alert('You have been disqualified by the Administrator.');
+        window.location.href = '/';
+      } else if (msg.type === 'SYNC_ANSWERS_ACK') {
+        document.getElementById('saveStatus').textContent = 'Saved';
+      } else if (msg.type === 'HEARTBEAT_ACK') {
+        if (msg.warningMessage) {
+          document.getElementById('invigilatorWarningText').textContent = msg.warningMessage;
+          document.getElementById('invigilatorWarningModal').classList.remove('hidden');
+        }
+        if (msg.extraTimeGrantedMinutes) {
+          examEndTime += msg.extraTimeGrantedMinutes * 60 * 1000;
+        }
+        if (msg.isSuspended && !isSuspended) {
+          lockExamSuspended('Session suspended by Administrator.');
+        } else if (!msg.isSuspended && isSuspended) {
+          resumeExamFromSuspension();
+        }
+      } else if (msg.type === 'ADMIN_COMMAND') {
+        if (msg.action === 'SEND_WARNING') {
+          document.getElementById('invigilatorWarningText').textContent = msg.payload?.message || 'Admin Alert';
+          document.getElementById('invigilatorWarningModal').classList.remove('hidden');
+        }
+      }
+    }
+
+    function startExamUI() {
+      isExamActive = true;
+      initLockdownEngine();
+
+      document.getElementById('checkInScreen').classList.add('hidden');
+      document.getElementById('examRunnerScreen').classList.remove('hidden');
+
+      document.getElementById('runnerStudentName').textContent = studentName;
+      document.getElementById('runnerStudentId').textContent = `${studentId} • Seat: ${seatNumber}`;
+
+      renderQuestion(0);
+      renderPalette();
+      startCountdownTimer();
+      startHeartbeatTimer();
+
+      // Silent camera snapshot interval (every 60s)
+      setInterval(takeSilentProctorSnapshot, 60000);
+    }
+
+    // ==============================================================
+    // QUESTION RUNNER WITH KATEX FORMULA RENDERING                  -->
+    // ==============================================================
+
+    function renderQuestion(index) {
+      if (!examData || !examData.questions || examData.questions.length === 0) return;
+      currentQIndex = index;
+      const q = examData.questions[index];
+
+      document.getElementById('qHeaderNumber').textContent = `Question ${index + 1} of ${examData.questions.length}`;
+      document.getElementById('qHeaderPoints').textContent = `${q.points || 10} Points`;
+      document.getElementById('qPrompt').textContent = q.prompt;
+
+      const container = document.getElementById('qAnswerContainer');
+      container.innerHTML = '';
+
+      if (q.type === 'MCQ' || q.type === 'TRUE_FALSE') {
+        q.options.forEach((opt, idx) => {
+          const isSelected = answers[q.id] === opt;
+          const optLetter = String.fromCharCode(65 + idx);
+
+          const optDiv = document.createElement('div');
+          optDiv.onclick = () => selectOption(q.id, opt);
+          optDiv.className = `p-4 rounded-xl border cursor-pointer transition-all flex items-center space-x-3.5 ${isSelected ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-600/10' : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'}`;
+          optDiv.innerHTML = `
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'} font-mono">${optLetter}</div>
+            <div class="text-sm font-medium flex-1 katex-render">${opt}</div>
+          `;
+          container.appendChild(optDiv);
+        });
+      } else {
+        const currentText = answers[q.id] || '';
+        const textarea = document.createElement('textarea');
+        textarea.rows = 6;
+        textarea.value = currentText;
+        textarea.placeholder = 'Type your complete response here...';
+        textarea.className = 'w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500';
+        textarea.oninput = (e) => {
+          answers[q.id] = e.target.value;
+          persistAndSyncAnswers();
+          renderPalette();
+        };
+        container.appendChild(textarea);
+      }
+
+      document.getElementById('btnPrev').disabled = index === 0;
+      document.getElementById('btnPrev').className = index === 0 ? 'px-4 py-2 bg-slate-800/40 text-slate-600 text-xs font-semibold rounded-lg cursor-not-allowed flex items-center space-x-2' : 'px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors flex items-center space-x-2';
+      
+      const isLast = index === examData.questions.length - 1;
+      document.getElementById('btnNext').innerHTML = isLast ? '<span>Review & Submit</span><i class="fa-solid fa-check text-xs"></i>' : '<span>Next</span><i class="fa-solid fa-arrow-right text-xs"></i>';
+
+      const isFlagged = flaggedQuestions.has(index);
+      document.getElementById('btnFlag').className = isFlagged ? 'px-3 py-2 text-amber-400 text-xs font-semibold flex items-center space-x-1.5' : 'px-3 py-2 text-slate-400 hover:text-amber-400 text-xs font-semibold flex items-center space-x-1.5';
+
+      // Auto-render math formulas with KaTeX
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('examRunnerScreen'), {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function selectOption(qId, val) {
+      if (isSuspended) return;
+      answers[qId] = val;
+      renderQuestion(currentQIndex);
+      persistAndSyncAnswers();
+      renderPalette();
+    }
+
+    function nextQuestion() {
+      if (currentQIndex < examData.questions.length - 1) {
+        renderQuestion(currentQIndex + 1);
+      } else {
+        confirmSubmitExam();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQIndex > 0) {
+        renderQuestion(currentQIndex - 1);
+      }
+    }
+
+    function toggleFlagCurrentQuestion() {
+      if (flaggedQuestions.has(currentQIndex)) {
+        flaggedQuestions.delete(currentQIndex);
+      } else {
+        flaggedQuestions.add(currentQIndex);
+      }
+      renderQuestion(currentQIndex);
+      renderPalette();
+    }
+
+    function renderPalette() {
+      if (!examData) return;
+      const palette = document.getElementById('questionPalette');
+      palette.innerHTML = examData.questions.map((q, idx) => {
+        const isCurrent = idx === currentQIndex;
+        const isAnswered = answers[q.id] !== undefined && answers[q.id] !== '';
+        const isFlagged = flaggedQuestions.has(idx);
+
+        let bg = 'bg-slate-950 border border-slate-800 text-slate-400';
+        if (isAnswered) bg = 'bg-indigo-600 text-white font-bold';
+        if (isFlagged) bg = 'bg-amber-500 text-white font-bold';
+        if (isCurrent) bg += ' ring-2 ring-white';
+
+        return `
+          <button onclick="renderQuestion(${idx})" class="h-9 rounded-lg text-xs font-mono transition-transform hover:scale-105 flex items-center justify-center ${bg}">
+            ${idx + 1}
+          </button>
+        `;
+      }).join('');
+    }
+
+    // ==============================================================
+    // SYNC & TIMERS                                                 -->
+    // ==============================================================
+
+    function persistAndSyncAnswers(isFinal = false) {
+      document.getElementById('saveStatus').textContent = 'Saving...';
+      try {
+        localStorage.setItem(`exam_${sessionPin}_${studentId}`, JSON.stringify(answers));
+      } catch (e) {}
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'STUDENT_SYNC_ANSWERS',
+          sessionPin,
+          studentId,
+          answers,
+          isFinalSubmission: isFinal
+        }));
+      }
+    }
+
+    function startHeartbeatTimer() {
+      setInterval(() => {
+        if (!isExamActive || !ws || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(JSON.stringify({
+          type: 'STUDENT_HEARTBEAT',
+          sessionPin,
+          studentId,
+          currentQuestionIndex: currentQIndex,
+          answeredCount: Object.keys(answers).length,
+          battery: 92
+        }));
+      }, 5000);
+    }
+
+    function startCountdownTimer() {
+      timerInterval = setInterval(() => {
+        const diff = examEndTime - Date.now();
+        if (diff <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('runnerTimer').textContent = '00:00:00';
+          alert('Time has expired! Submitting your answers automatically.');
+          submitExamFinal();
+          return;
+        }
+
+        const hrs = Math.floor(diff / 3600000);
+        const mins = Math.floor((diff % 3600000) / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+
+        document.getElementById('runnerTimer').textContent = 
+          `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function confirmSubmitExam() {
+      const answeredCount = Object.keys(answers).length;
+      const total = examData.questions.length;
+      if (confirm(`You have answered ${answeredCount} of ${total} questions.\nAre you sure you want to finalize and submit?`)) {
+        submitExamFinal();
+      }
+    }
+
+    function submitExamFinal() {
+      isExamActive = false;
+      clearInterval(timerInterval);
+      persistAndSyncAnswers(true);
+
+      document.getElementById('examRunnerScreen').classList.add('hidden');
+      document.getElementById('calculatorModal').classList.add('hidden');
+      document.getElementById('submissionSuccessScreen').classList.remove('hidden');
+
+      document.getElementById('receiptName').textContent = studentName;
+      document.getElementById('receiptHash').textContent = 'SIT-HASH-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      document.getElementById('receiptTimestamp').textContent = new Date().toLocaleString();
+    }
+
+    function exitExamKiosk() {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+      window.location.href = '/';
+    }
+
+    function dismissStudentWarning() {
+      document.getElementById('invigilatorWarningModal').classList.add('hidden');
+    }
+
+    // Auto-start camera when check-in screen loads
+    window.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('pin')) {
+        document.getElementById('inputSessionPin').value = params.get('pin');
+      }
+    });
+  </script>
+</body>
+</html>

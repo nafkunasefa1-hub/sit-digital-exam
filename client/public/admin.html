@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIT Admin Proctoring Command Center</title>
+  <link rel="icon" type="image/png" href="/sit-logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .pulse-danger { animation: pulseDanger 1.2s infinite; }
+    @keyframes pulseDanger {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.02); }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
+
+  <!-- ============================================================== -->
+  <!-- REAL-TIME TOAST NOTIFICATION CONTAINER (TOP-RIGHT)            -->
+  <!-- ============================================================== -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-md w-full pointer-events-none">
+    <!-- Notifications appear here dynamically -->
+  </div>
+
+  <!-- Top Admin Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-[1700px] mx-auto px-6 py-3 flex items-center justify-between">
+      
+      <!-- Brand & Hall Info with SIT Logo -->
+      <div class="flex items-center space-x-3.5">
+        <a href="/" class="flex items-center space-x-3">
+          <img src="/sit-logo.png" alt="SIT Logo" class="w-10 h-10 rounded-full border border-red-500/40 p-0.5 bg-slate-950 object-contain hover:scale-105 transition-transform">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-base font-bold text-white tracking-tight">SIT Admin Command</h1>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-red-600 text-white">PROCTOR</span>
+            </div>
+            <p class="text-xs text-slate-400" id="headerRoomInfo">Shegger Institute of Technology &bull; Live Telemetry</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Center Session PIN & Hall Status -->
+      <div class="flex items-center space-x-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-1.5 flex items-center space-x-3 shadow-inner">
+          <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Session PIN:</span>
+          <span class="text-xl font-extrabold text-red-400 font-mono tracking-widest cursor-pointer select-all" id="displaySessionPin" title="Session PIN">
+            ------
+          </span>
+          <button onclick="copySessionPin()" class="text-slate-400 hover:text-red-400 transition-colors" title="Copy PIN">
+            <i class="fa-regular fa-copy text-xs"></i>
+          </button>
+        </div>
+
+        <div class="hidden md:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-4 py-1.5 rounded-xl">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs text-slate-300 font-medium">Real-time WebSocket Live</span>
+        </div>
+      </div>
+
+      <!-- Controls: Audio Toggle, Refresh, Exit -->
+      <div class="flex items-center space-x-3">
+        <button onclick="toggleAudioAlerts()" id="btnAudioToggle" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition-all flex items-center space-x-1.5">
+          <i class="fa-solid fa-volume-high text-indigo-400" id="audioIcon"></i>
+          <span id="audioLabel">Sound Alerts ON</span>
+        </button>
+        <a href="/teacher" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center space-x-1.5">
+          <i class="fa-solid fa-chalkboard-user text-violet-400"></i>
+          <span>Teacher Portal</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Command View -->
+  <main class="max-w-[1700px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
+
+    <!-- Metrics Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      
+      <!-- Active Students -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+        <span class="text-xs font-medium text-slate-400">Connected Students</span>
+        <div class="flex items-baseline justify-between mt-2">
+          <span class="text-2xl font-bold text-white font-mono" id="metricTotal">0</span>
+          <span class="text-xs text-slate-500">In Hall</span>
+        </div>
+      </div>
+
+      <!-- Normal / Good Standing -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+        <span class="text-xs font-medium text-emerald-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Normal Standing
+        </span>
+        <div class="flex items-baseline justify-between mt-2">
+          <span class="text-2xl font-bold text-emerald-400 font-mono" id="metricNormal">0</span>
+          <span class="text-xs text-emerald-500/70">0 Violations</span>
+        </div>
+      </div>
+
+      <!-- Warning (1-2 Violations) -->
+      <div class="bg-slate-900/80 border border-amber-900/30 rounded-xl p-4 flex flex-col justify-between cursor-pointer hover:border-amber-600/60 transition-colors" onclick="setFilter('WARNING')">
+        <span class="text-xs font-medium text-amber-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-triangle-exclamation"></i> Warnings (1-2 Violations)
+        </span>
+        <div class="flex items-baseline justify-between mt-2">
+          <span class="text-2xl font-bold text-amber-400 font-mono" id="metricWarnings">0</span>
+          <span class="text-xs text-amber-500/80">Monitor Closely</span>
+        </div>
+      </div>
+
+      <!-- SUSPENDED (3+ Violations) -->
+      <div class="bg-red-950/30 border border-red-700/60 rounded-xl p-4 flex flex-col justify-between cursor-pointer hover:border-red-500 transition-colors" onclick="setFilter('SUSPENDED')">
+        <span class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-ban"></i> SUSPENDED (3+ Violations)
+        </span>
+        <div class="flex items-baseline justify-between mt-2">
+          <span class="text-2xl font-extrabold text-red-400 font-mono" id="metricSuspended">0</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-red-600 text-white font-bold">LOCKED</span>
+        </div>
+      </div>
+
+      <!-- Submitted -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+        <span class="text-xs font-medium text-indigo-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-check"></i> Submitted Exams
+        </span>
+        <div class="flex items-baseline justify-between mt-2">
+          <span class="text-2xl font-bold text-indigo-400 font-mono" id="metricSubmitted">0</span>
+          <span class="text-xs text-slate-500">Completed</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- SUSPENDED STUDENTS QUARANTINE SECTION (SHOWS IF COUNT > 0)    -->
+    <!-- ============================================================== -->
+    <div id="suspendedSection" class="border-2 border-red-600 bg-red-950/20 rounded-2xl p-6 hidden">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center text-lg animate-pulse">
+            <i class="fa-solid fa-ban"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-white">Quarantine: Suspended Students (Exceeded 3 Violations)</h3>
+            <p class="text-xs text-red-300">Their exams are locked. Review their infractions and take action (Lift Suspension or Disqualify).</p>
+          </div>
+        </div>
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-600 text-white" id="suspendedBadge">0 Suspended</span>
+      </div>
+
+      <div id="suspendedGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Suspended student cards rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+      
+      <!-- Search Input -->
+      <div class="relative flex-1 max-w-md">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+        <input type="text" id="searchInput" oninput="renderStudentsGrid()" placeholder="Search Student ID, Name, or Seat..." class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500">
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="setFilter('ALL')" id="filterAll" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white shadow-md">All Students (<span id="countAll">0</span>)</button>
+        <button onclick="setFilter('SUSPENDED')" id="filterSuspended" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-red-400 border border-slate-800 hover:border-red-500/40">⛔ Suspended (<span id="countSuspended">0</span>)</button>
+        <button onclick="setFilter('WARNING')" id="filterWarning" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-amber-400 border border-slate-800 hover:border-amber-500/40">⚠️ Warning (<span id="countWarning">0</span>)</button>
+        <button onclick="setFilter('NORMAL')" id="filterNormal" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-emerald-400 border border-slate-800 hover:border-emerald-500/40">🟢 Normal (<span id="countNormal">0</span>)</button>
+        <button onclick="setFilter('SUBMITTED')" id="filterSubmitted" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-indigo-400 border border-slate-800 hover:border-indigo-500/40">🔵 Submitted (<span id="countSubmitted">0</span>)</button>
+      </div>
+
+    </div>
+
+    <!-- Active Students Grid -->
+    <div id="studentsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5">
+      <!-- Students rendered dynamically as they log in -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="py-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
+      <div class="w-16 h-16 mx-auto rounded-full bg-slate-800/60 flex items-center justify-center text-slate-500 text-2xl mb-4">
+        <i class="fa-solid fa-user-clock"></i>
+      </div>
+      <h3 class="text-base font-bold text-white mb-1">Awaiting Students to Sign In</h3>
+      <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">
+        Students who enter the Session PIN on their phone or laptop will automatically appear here in real time.
+      </p>
+    </div>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- ADMIN TELEMETRY & ACTIONS FLYOUT DRAWER                        -->
+  <!-- ============================================================== -->
+  <div id="adminDrawerBackdrop" onclick="closeAdminDrawer()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden transition-opacity"></div>
+  <div id="adminDrawer" class="fixed top-0 right-0 h-full w-full max-w-lg bg-slate-900 border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between shadow-2xl">
+    
+    <!-- Drawer Header -->
+    <div class="p-6 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div id="drawerAvatar" class="w-12 h-12 rounded-xl bg-red-600/20 text-red-400 border border-red-500/30 flex items-center justify-center text-lg font-bold">
+          ST
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white" id="drawerStudentName">Student Name</h3>
+          <div class="flex items-center space-x-2 text-xs text-slate-400">
+            <span id="drawerStudentId" class="font-mono">STU-1001</span>
+            <span>&bull;</span>
+            <span id="drawerSeat">Seat: Row A-1</span>
+          </div>
+        </div>
+      </div>
+      <button onclick="closeAdminDrawer()" class="text-slate-400 hover:text-white p-2">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Drawer Body -->
+    <div class="p-6 overflow-y-auto flex-1 space-y-6">
+      
+      <!-- Status & Device Telemetry -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2 text-xs">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400 font-semibold uppercase tracking-wider">Standing Status:</span>
+          <span id="drawerStatusBadge" class="px-2.5 py-1 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400">NORMAL</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+          <div><span class="text-slate-500">Platform:</span> <span id="drawerPlatform" class="text-white font-medium">Android Phone</span></div>
+          <div><span class="text-slate-500">Battery:</span> <span id="drawerBattery" class="text-white font-medium">92%</span></div>
+          <div><span class="text-slate-500">Answered:</span> <span id="drawerAnswered" class="text-white font-medium">4 Questions</span></div>
+          <div><span class="text-slate-500">Violations:</span> <span id="drawerViolationsCount" class="text-red-400 font-bold font-mono">0 / 3</span></div>
+        </div>
+      </div>
+
+      <!-- Live Visual & ID Badge Verification (New Advanced Feature) -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-camera"></i>
+            <span>Visual Verification (Camera)</span>
+          </span>
+          <span class="text-[10px] text-slate-400 font-mono" id="drawerPhotoTimestamp">Live Feed</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Check-In Photo -->
+          <div>
+            <span class="text-[10px] text-slate-400 block mb-1">Check-in Face / ID:</span>
+            <div class="h-28 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex items-center justify-center">
+              <img id="drawerIdPhoto" class="w-full h-full object-cover hidden">
+              <div id="drawerIdPhotoPlaceholder" class="text-[10px] text-slate-600 flex flex-col items-center">
+                <i class="fa-regular fa-image text-base mb-1"></i>
+                <span>No Check-in Photo</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Latest Periodic Snapshot -->
+          <div>
+            <span class="text-[10px] text-slate-400 block mb-1">Latest Proctor Shot:</span>
+            <div class="h-28 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex items-center justify-center relative">
+              <img id="drawerLivePhoto" class="w-full h-full object-cover hidden">
+              <div id="drawerLivePhotoPlaceholder" class="text-[10px] text-slate-600 flex flex-col items-center">
+                <i class="fa-solid fa-camera-rotate text-base mb-1"></i>
+                <span>Waiting for Shot</span>
+              </div>
+              <span class="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-black/70 text-[8px] font-mono text-emerald-400">Live</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Admin Interventions -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+        <span class="text-xs font-bold text-red-400 uppercase tracking-wider block">Admin Direct Actions</span>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Lift Suspension button (highlighted if suspended) -->
+          <button onclick="handleLiftSuspension()" id="btnDrawerLift" class="p-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-md">
+            <i class="fa-solid fa-lock-open"></i>
+            <span>Lift Suspension</span>
+          </button>
+
+          <button onclick="handleAdminWarn()" class="p-2.5 bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span>Send Alert Popup</span>
+          </button>
+
+          <button onclick="handleAdminAddTime(5)" class="p-2.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-clock"></i>
+            <span>Grant +5 Mins</span>
+          </button>
+
+          <button onclick="handleAdminForceSubmit()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Force Submit</span>
+          </button>
+        </div>
+
+        <button onclick="handleAdminDisqualify()" class="w-full p-2 bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-800/40 rounded-lg text-xs font-bold transition-colors flex items-center justify-center space-x-1.5">
+          <i class="fa-solid fa-gavel"></i>
+          <span>Permanently Disqualify Student</span>
+        </button>
+      </div>
+
+      <!-- Chronological Audit Log -->
+      <div>
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Infraction History</h4>
+        <div id="drawerTimeline" class="space-y-2">
+          <!-- Timeline entries -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drawer Footer -->
+    <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+      <button onclick="closeAdminDrawer()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Close</button>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    let activeSession = null;
+    let studentsMap = {};
+    let ws = null;
+    let currentFilter = 'ALL';
+    let selectedStudentId = null;
+    let audioAlertsEnabled = true;
+
+    // Web Audio Synthesizer for instant audible alerts without external files
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq = 660, type = 'sine', duration = 0.2) {
+      if (!audioAlertsEnabled) return;
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playSuspensionAlarm() {
+      if (!audioAlertsEnabled) return;
+      playBeep(880, 'sawtooth', 0.15);
+      setTimeout(() => playBeep(550, 'sawtooth', 0.25), 180);
+    }
+
+    async function init() {
+      try {
+        const sessRes = await fetch('/api/sessions');
+        const sessData = await sessRes.json();
+        if (sessData.sessions && sessData.sessions.length > 0) {
+          activeSession = sessData.sessions[0];
+          document.getElementById('displaySessionPin').textContent = activeSession.pin;
+          document.getElementById('headerRoomInfo').textContent = `${activeSession.roomName || 'Campus Main Hall'} • ${activeSession.examTitle || 'University Exam'}`;
+          studentsMap = activeSession.students || {};
+          connectWebSocket(activeSession.pin);
+          updateMetrics();
+          renderStudentsGrid();
+        }
+      } catch (err) {
+        console.error('Failed to init Admin center:', err);
+      }
+    }
+
+    function connectWebSocket(pin) {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}`);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'ADMIN_JOIN',
+          sessionPin: pin
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+
+          if (msg.type === 'SESSION_INIT') {
+            if (msg.session) {
+              activeSession = msg.session;
+              studentsMap = msg.session.students || {};
+              updateMetrics();
+              renderStudentsGrid();
+            }
+          } else if (msg.type === 'STUDENT_STATUS_UPDATE') {
+            studentsMap[msg.student.studentId] = msg.student;
+            updateMetrics();
+            renderStudentsGrid();
+            if (selectedStudentId === msg.student.studentId) {
+              openAdminDrawer(msg.student.studentId);
+            }
+          } else if (msg.type === 'VIOLATION_NOTIFICATION') {
+            // Live infraction notification!
+            studentsMap[msg.student.studentId] = msg.student;
+            updateMetrics();
+            renderStudentsGrid();
+            playBeep(700, 'sine', 0.25);
+            showNotificationToast(
+              `🚨 Lockdown Violation: ${msg.student.studentName} (${msg.student.studentId})`,
+              `${msg.violation.type.replace('_', ' ')}: ${msg.violation.description}. (Infraction ${msg.student.violationsCount} of ${msg.maxAllowed})`,
+              'warning'
+            );
+            if (selectedStudentId === msg.student.studentId) {
+              openAdminDrawer(msg.student.studentId);
+            }
+          } else if (msg.type === 'STUDENT_SUSPENDED_ALERT') {
+            // HIGH-PRIORITY 3-VIOLATION SUSPENSION ALERT
+            studentsMap[msg.student.studentId] = msg.student;
+            updateMetrics();
+            renderStudentsGrid();
+            playSuspensionAlarm();
+            showNotificationToast(
+              `⛔ STUDENT SUSPENDED: ${msg.student.studentName}`,
+              `Exceeded 3 violations! Exam has been locked and placed in quarantine.`,
+              'danger'
+            );
+            if (selectedStudentId === msg.student.studentId) {
+              openAdminDrawer(msg.student.studentId);
+            }
+          } else if (msg.type === 'STUDENT_SNAPSHOT_UPDATE') {
+            if (studentsMap[msg.studentId]) {
+              studentsMap[msg.studentId].latestSnapshot = msg.latestSnapshot;
+              if (selectedStudentId === msg.studentId) {
+                const liveImg = document.getElementById('drawerLivePhoto');
+                const placeholder = document.getElementById('drawerLivePhotoPlaceholder');
+                liveImg.src = msg.latestSnapshot;
+                liveImg.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                document.getElementById('drawerPhotoTimestamp').textContent = new Date(msg.timestamp).toLocaleTimeString();
+              }
+            }
+          } else if (msg.type === 'STUDENT_DISCONNECTED') {
+            if (studentsMap[msg.studentId]) {
+              studentsMap[msg.studentId].status = 'DISCONNECTED';
+              updateMetrics();
+              renderStudentsGrid();
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      ws.onclose = () => {
+        setTimeout(() => connectWebSocket(pin), 3000);
+      };
+    }
+
+    function showNotificationToast(title, message, type = 'warning') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `p-4 rounded-xl border shadow-2xl pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0 flex items-start space-x-3 ${type === 'danger' ? 'bg-red-950/95 border-red-500 text-white' : 'bg-slate-900/95 border-amber-500 text-slate-100'}`;
+      
+      const icon = type === 'danger' ? 'fa-ban text-red-400' : 'fa-triangle-exclamation text-amber-400';
+
+      toast.innerHTML = `
+        <div class="text-lg mt-0.5"><i class="fa-solid ${icon}"></i></div>
+        <div class="flex-1 text-xs">
+          <div class="font-bold text-white mb-0.5">${title}</div>
+          <div class="text-slate-300 leading-snug">${message}</div>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white text-xs">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      // Auto dismiss after 8 seconds
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-full');
+        setTimeout(() => toast.remove(), 400);
+      }, 8000);
+    }
+
+    function updateMetrics() {
+      const list = Object.values(studentsMap);
+      const total = list.length;
+      const suspended = list.filter(s => s.status === 'SUSPENDED' || s.isSuspended).length;
+      const warnings = list.filter(s => (s.violationsCount > 0 && s.violationsCount < 3 && !s.isSuspended)).length;
+      const normal = list.filter(s => s.violationsCount === 0 && s.status === 'ACTIVE').length;
+      const submitted = list.filter(s => s.status === 'SUBMITTED').length;
+
+      document.getElementById('metricTotal').textContent = total;
+      document.getElementById('metricSuspended').textContent = suspended;
+      document.getElementById('metricWarnings').textContent = warnings;
+      document.getElementById('metricNormal').textContent = normal;
+      document.getElementById('metricSubmitted').textContent = submitted;
+
+      document.getElementById('countAll').textContent = total;
+      document.getElementById('countSuspended').textContent = suspended;
+      document.getElementById('countWarning').textContent = warnings;
+      document.getElementById('countNormal').textContent = normal;
+      document.getElementById('countSubmitted').textContent = submitted;
+
+      // Handle Quarantine Section
+      const qSection = document.getElementById('suspendedSection');
+      const qGrid = document.getElementById('suspendedGrid');
+      const qBadge = document.getElementById('suspendedBadge');
+
+      if (suspended > 0) {
+        qSection.classList.remove('hidden');
+        qBadge.textContent = `${suspended} Suspended`;
+        const suspendedStudents = list.filter(s => s.status === 'SUSPENDED' || s.isSuspended);
+        qGrid.innerHTML = suspendedStudents.map(s => `
+          <div class="bg-red-950/40 border border-red-500 rounded-xl p-4 flex flex-col justify-between space-y-3">
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-sm font-extrabold text-white">${s.studentName}</h4>
+                <p class="text-xs font-mono text-red-300">${s.studentId} • Seat: ${s.seatNumber || 'N/A'}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">3/3 VIOLATIONS</span>
+            </div>
+            <p class="text-[11px] text-red-200">Exam runner locked on student device. Action required.</p>
+            <div class="flex items-center space-x-2 pt-2 border-t border-red-900/50">
+              <button onclick="liftSuspensionFor('${s.studentId}')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1">
+                <i class="fa-solid fa-lock-open text-[10px]"></i>
+                <span>Lift Suspension</span>
+              </button>
+              <button onclick="openAdminDrawer('${s.studentId}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
+                Inspect
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        qSection.classList.add('hidden');
+      }
+    }
+
+    function renderStudentsGrid() {
+      const grid = document.getElementById('studentsGrid');
+      const empty = document.getElementById('emptyState');
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      let list = Object.values(studentsMap);
+
+      if (currentFilter === 'SUSPENDED') {
+        list = list.filter(s => s.status === 'SUSPENDED' || s.isSuspended);
+      } else if (currentFilter === 'WARNING') {
+        list = list.filter(s => s.violationsCount > 0 && s.violationsCount < 3 && !s.isSuspended);
+      } else if (currentFilter === 'NORMAL') {
+        list = list.filter(s => s.violationsCount === 0 && s.status === 'ACTIVE');
+      } else if (currentFilter === 'SUBMITTED') {
+        list = list.filter(s => s.status === 'SUBMITTED');
+      }
+
+      if (search) {
+        list = list.filter(s =>
+          s.studentName.toLowerCase().includes(search) ||
+          s.studentId.toLowerCase().includes(search) ||
+          (s.seatNumber && s.seatNumber.toLowerCase().includes(search))
+        );
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      grid.innerHTML = list.map(s => {
+        const isSuspended = s.status === 'SUSPENDED' || s.isSuspended;
+        const isWarning = s.violationsCount > 0 && !isSuspended;
+        const isSubmitted = s.status === 'SUBMITTED';
+
+        let borderClass = 'border-slate-800 bg-slate-900/70 hover:border-slate-700';
+        let statusBadge = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span>';
+
+        if (isSuspended) {
+          borderClass = 'border-red-600 bg-red-950/30 pulse-danger shadow-lg shadow-red-950/50';
+          statusBadge = '<span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-red-600 text-white">SUSPENDED</span>';
+        } else if (isWarning) {
+          borderClass = 'border-amber-600/70 bg-amber-950/20';
+          statusBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-black">${s.violationsCount}/3 WARN</span>`;
+        } else if (isSubmitted) {
+          borderClass = 'border-indigo-600/40 bg-indigo-950/20';
+          statusBadge = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-600/20 text-indigo-400">DONE</span>';
+        }
+
+        const devIcon = s.deviceInfo?.platform?.includes('Phone') ? 'fa-mobile-screen' : (s.deviceInfo?.platform?.includes('Tablet') ? 'fa-tablet-screen-button' : 'fa-laptop');
+
+        return `
+          <div onclick="openAdminDrawer('${s.studentId}')" class="border ${borderClass} rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between">
+            <div class="flex items-start justify-between gap-1 mb-2">
+              <div class="truncate">
+                <div class="text-xs font-bold text-white truncate">${s.studentName}</div>
+                <div class="text-[10px] font-mono text-slate-400 truncate">${s.studentId}</div>
+              </div>
+              <div>${statusBadge}</div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-2 mt-2">
+              <span class="truncate"><i class="fa-solid fa-chair text-slate-500 mr-1"></i>${s.seatNumber || 'N/A'}</span>
+              <div class="flex items-center space-x-1.5 text-slate-400">
+                <i class="fa-solid ${devIcon} text-[10px]"></i>
+                <span class="text-[10px] font-mono">${s.deviceInfo?.battery || 100}%</span>
+              </div>
+            </div>
+
+            <div class="mt-2 text-[10px] flex items-center justify-between text-slate-500">
+              <span>Ans: <strong class="text-slate-300 font-mono">${s.answeredCount || 0}</strong></span>
+              <span class="${isSuspended ? 'text-red-400 font-bold' : (isWarning ? 'text-amber-400 font-bold' : 'text-emerald-400')}">
+                ${s.violationsCount} Violations
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      const filters = ['ALL', 'SUSPENDED', 'WARNING', 'NORMAL', 'SUBMITTED'];
+      filters.forEach(f => {
+        const el = document.getElementById('filter' + f.charAt(0) + f.slice(1).toLowerCase());
+        if (el) {
+          if (f === filter) {
+            el.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white shadow-md';
+          } else {
+            el.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700';
+          }
+        }
+      });
+      renderStudentsGrid();
+    }
+
+    function openAdminDrawer(studentId) {
+      selectedStudentId = studentId;
+      const s = studentsMap[studentId];
+      if (!s) return;
+
+      document.getElementById('drawerStudentName').textContent = s.studentName;
+      document.getElementById('drawerStudentId').textContent = s.studentId;
+      document.getElementById('drawerSeat').textContent = `Seat: ${s.seatNumber || 'Unassigned'}`;
+      document.getElementById('drawerAvatar').textContent = s.studentName.slice(0, 2).toUpperCase();
+      document.getElementById('drawerPlatform').textContent = `${s.deviceInfo?.platform || 'Web'} (${s.deviceInfo?.os || 'Unknown'})`;
+      document.getElementById('drawerBattery').textContent = `${s.deviceInfo?.battery || 100}%`;
+      document.getElementById('drawerAnswered').textContent = `${s.answeredCount || 0} Questions`;
+      document.getElementById('drawerViolationsCount').textContent = `${s.violationsCount || 0} / 3`;
+
+      // Photo Verification
+      const idImg = document.getElementById('drawerIdPhoto');
+      const idPlaceholder = document.getElementById('drawerIdPhotoPlaceholder');
+      if (s.idPhoto) {
+        idImg.src = s.idPhoto;
+        idImg.classList.remove('hidden');
+        idPlaceholder.classList.add('hidden');
+      } else {
+        idImg.classList.add('hidden');
+        idPlaceholder.classList.remove('hidden');
+      }
+
+      const liveImg = document.getElementById('drawerLivePhoto');
+      const livePlaceholder = document.getElementById('drawerLivePhotoPlaceholder');
+      if (s.latestSnapshot) {
+        liveImg.src = s.latestSnapshot;
+        liveImg.classList.remove('hidden');
+        livePlaceholder.classList.add('hidden');
+        document.getElementById('drawerPhotoTimestamp').textContent = 'Updated';
+      } else {
+        liveImg.classList.add('hidden');
+        livePlaceholder.classList.remove('hidden');
+      }
+
+      const statusBadge = document.getElementById('drawerStatusBadge');
+      const isSuspended = s.status === 'SUSPENDED' || s.isSuspended;
+
+      if (isSuspended) {
+        statusBadge.className = 'px-2.5 py-1 rounded text-xs font-extrabold bg-red-600 text-white';
+        statusBadge.textContent = 'SUSPENDED (3 VIOLATIONS)';
+        document.getElementById('btnDrawerLift').classList.remove('hidden');
+      } else if (s.violationsCount > 0) {
+        statusBadge.className = 'px-2.5 py-1 rounded text-xs font-bold bg-amber-500 text-black';
+        statusBadge.textContent = 'WARNING';
+        document.getElementById('btnDrawerLift').classList.add('hidden');
+      } else if (s.status === 'SUBMITTED') {
+        statusBadge.className = 'px-2.5 py-1 rounded text-xs font-bold bg-indigo-600 text-white';
+        statusBadge.textContent = 'SUBMITTED';
+        document.getElementById('btnDrawerLift').classList.add('hidden');
+      } else {
+        statusBadge.className = 'px-2.5 py-1 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400';
+        statusBadge.textContent = 'NORMAL';
+        document.getElementById('btnDrawerLift').classList.add('hidden');
+      }
+
+      // Populate Infraction History
+      const timeline = document.getElementById('drawerTimeline');
+      if (!s.violations || s.violations.length === 0) {
+        timeline.innerHTML = `
+          <div class="p-4 border border-slate-800 rounded-xl bg-slate-950/60 text-center text-xs text-slate-500">
+            <i class="fa-solid fa-circle-check text-emerald-500 text-sm mb-1.5 block"></i>
+            Clean record. No lockdown infractions recorded.
+          </div>
+        `;
+      } else {
+        timeline.innerHTML = s.violations.map((v, idx) => {
+          const time = new Date(v.timestamp).toLocaleTimeString();
+          return `
+            <div class="p-3 bg-red-950/30 border border-red-900/50 rounded-xl text-xs space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-red-400 flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center font-mono">${idx + 1}</span>
+                  ${v.type.replace('_', ' ')}
+                </span>
+                <span class="font-mono text-[10px] text-slate-400">${time}</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">${v.description}</p>
+            </div>
+          `;
+        }).reverse().join('');
+      }
+
+      document.getElementById('adminDrawerBackdrop').classList.remove('hidden');
+      document.getElementById('adminDrawer').classList.remove('translate-x-full');
+    }
+
+    function closeAdminDrawer() {
+      selectedStudentId = null;
+      document.getElementById('adminDrawerBackdrop').classList.add('hidden');
+      document.getElementById('adminDrawer').classList.add('translate-x-full');
+    }
+
+    // Direct Admin Actions
+    function liftSuspensionFor(sId) {
+      if (!activeSession) return;
+      if (confirm(`Lift suspension for student ${sId}? Their exam will be instantly unlocked.`)) {
+        ws.send(JSON.stringify({
+          type: 'ADMIN_ACTION',
+          sessionPin: activeSession.pin,
+          studentId: sId,
+          action: 'LIFT_SUSPENSION'
+        }));
+        showNotificationToast('Suspension Lifted', `Student ${sId} can now resume answering questions.`, 'warning');
+      }
+    }
+
+    function handleLiftSuspension() {
+      if (selectedStudentId) liftSuspensionFor(selectedStudentId);
+    }
+
+    function handleAdminWarn() {
+      if (!selectedStudentId || !activeSession) return;
+      const msg = prompt('Enter alert message to display on student device:', 'ADMIN ALERT: Look directly at your screen. You have committed an infraction.');
+      if (msg) {
+        ws.send(JSON.stringify({
+          type: 'ADMIN_ACTION',
+          sessionPin: activeSession.pin,
+          studentId: selectedStudentId,
+          action: 'SEND_WARNING',
+          payload: { message: msg }
+        }));
+      }
+    }
+
+    function handleAdminAddTime(mins) {
+      if (!selectedStudentId || !activeSession) return;
+      if (confirm(`Grant +${mins} minutes of extra time?`)) {
+        ws.send(JSON.stringify({
+          type: 'ADMIN_ACTION',
+          sessionPin: activeSession.pin,
+          studentId: selectedStudentId,
+          action: 'ADD_TIME',
+          payload: { minutes: mins }
+        }));
+      }
+    }
+
+    function handleAdminForceSubmit() {
+      if (!selectedStudentId || !activeSession) return;
+      if (confirm('FORCE SUBMIT this student\'s exam right now?')) {
+        ws.send(JSON.stringify({
+          type: 'ADMIN_ACTION',
+          sessionPin: activeSession.pin,
+          studentId: selectedStudentId,
+          action: 'FORCE_SUBMIT'
+        }));
+      }
+    }
+
+    function handleAdminDisqualify() {
+      if (!selectedStudentId || !activeSession) return;
+      if (confirm('Permanently DISQUALIFY this student from the exam? This cannot be undone.')) {
+        ws.send(JSON.stringify({
+          type: 'ADMIN_ACTION',
+          sessionPin: activeSession.pin,
+          studentId: selectedStudentId,
+          action: 'DISQUALIFY'
+        }));
+      }
+    }
+
+    function toggleAudioAlerts() {
+      audioAlertsEnabled = !audioAlertsEnabled;
+      const icon = document.getElementById('audioIcon');
+      const label = document.getElementById('audioLabel');
+      if (audioAlertsEnabled) {
+        icon.className = 'fa-solid fa-volume-high text-indigo-400';
+        label.textContent = 'Sound Alerts ON';
+        playBeep(600, 'sine', 0.1);
+      } else {
+        icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+        label.textContent = 'Sound Alerts OFF';
+      }
+    }
+
+    function copySessionPin() {
+      const pin = document.getElementById('displaySessionPin').textContent.trim();
+      navigator.clipboard.writeText(pin);
+      alert('Copied Session PIN: ' + pin);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

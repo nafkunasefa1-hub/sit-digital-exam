@@ -1,0 +1,103 @@
+[
+  {
+    "id": "exam_cs301_final",
+    "title": "CS-301: Computer Architecture & Network Security Final Exam",
+    "courseCode": "CS-301",
+    "description": "Comprehensive university examination covering pipelining, memory hierarchy, cryptography, and network defense.",
+    "durationMinutes": 90,
+    "totalMarks": 100,
+    "randomizeQuestions": true,
+    "questions": [
+      {
+        "id": "q1",
+        "order": 1,
+        "type": "MCQ",
+        "points": 10,
+        "prompt": "Which hazard in pipelined processors occurs when an instruction depends on the result of a previous instruction that is still in progress?",
+        "options": [
+          "Structural hazard",
+          "Data hazard",
+          "Control hazard",
+          "Branch hazard"
+        ],
+        "correctAnswer": "Data hazard"
+      },
+      {
+        "id": "q2",
+        "order": 2,
+        "type": "MCQ",
+        "points": 10,
+        "prompt": "In modern virtual memory systems, what is the primary role of the Translation Lookaside Buffer (TLB)?",
+        "options": [
+          "To cache page table entries and accelerate virtual-to-physical address translation",
+          "To encrypt disk blocks when swapping memory pages",
+          "To balance network traffic between CPU cores",
+          "To compress swap memory on low-RAM devices"
+        ],
+        "correctAnswer": "To cache page table entries and accelerate virtual-to-physical address translation"
+      },
+      {
+        "id": "q3",
+        "order": 3,
+        "type": "MCQ",
+        "points": 10,
+        "prompt": "Which symmetric encryption mode provides both confidentiality and data integrity authentication in a single algorithm?",
+        "options": [
+          "AES-ECB (Electronic Codebook)",
+          "AES-CBC (Cipher Block Chaining)",
+          "AES-GCM (Galois/Counter Mode)",
+          "DES (Data Encryption Standard)"
+        ],
+        "correctAnswer": "AES-GCM (Galois/Counter Mode)"
+      },
+      {
+        "id": "q4",
+        "order": 4,
+        "type": "MCQ",
+        "points": 10,
+        "prompt": "What TCP flag combination is sent by a client to initiate the standard 3-way handshake with a server?",
+        "options": [
+          "SYN",
+          "SYN-ACK",
+          "ACK-FIN",
+          "RST"
+        ],
+        "correctAnswer": "SYN"
+      },
+      {
+        "id": "q5",
+        "order": 5,
+        "type": "MCQ",
+        "points": 10,
+        "prompt": "Which of the following cache replacement policies discards the item that has not been accessed for the longest period of time?",
+        "options": [
+          "FIFO (First-In, First-Out)",
+          "LRU (Least Recently Used)",
+          "LFU (Least Frequently Used)",
+          "Random Replacement"
+        ],
+        "correctAnswer": "LRU (Least Recently Used)"
+      },
+      {
+        "id": "q6",
+        "order": 6,
+        "type": "SHORT_ANSWER",
+        "points": 15,
+        "prompt": "Briefly define Amdahl's Law and state why infinite processor parallelization does not yield infinite speedup.",
+        "options": [],
+        "correctAnswer": "Amdahl's law states that overall speedup is limited by the serial/sequential fraction of the workload."
+      },
+      {
+        "id": "q7",
+        "order": 7,
+        "type": "ESSAY",
+        "points": 35,
+        "prompt": "Explain the mechanism of a Return-Oriented Programming (ROP) attack. Describe how Data Execution Prevention (DEP / NX bit) attempted to solve buffer overflows and how ROP circumvents DEP by chaining gadgets.",
+        "options": [],
+        "correctAnswer": "Subjective response evaluated by instructor rubric."
+      }
+    ],
+    "updatedAt": "2026-10-12T17:09:53.617Z",
+    "createdAt": "2026-10-12T17:09:53.618Z"
+  }
+]

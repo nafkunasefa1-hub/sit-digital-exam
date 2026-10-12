@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIT Teacher Portal - Shegger Institute of Technology</title>
+  <link rel="icon" type="image/png" href="/sit-logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- KaTeX Math Support -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-violet-500 selection:text-white">
+
+  <!-- Top Nav -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      
+      <!-- Brand with SIT Logo -->
+      <div class="flex items-center space-x-3.5">
+        <a href="/" class="flex items-center space-x-3">
+          <img src="/sit-logo.png" alt="SIT Logo" class="w-10 h-10 rounded-full border border-violet-500/40 p-0.5 bg-slate-950 object-contain hover:scale-105 transition-transform">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-base font-bold text-white tracking-tight">SIT Faculty Portal</h1>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 font-bold">TEACHER</span>
+            </div>
+            <p class="text-xs text-slate-400">Shegger Institute of Technology</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center space-x-2">
+        <button onclick="switchTab('exams')" id="tabBtnExams" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-violet-600 text-white shadow-md shadow-violet-600/30 transition-all flex items-center space-x-1.5">
+          <i class="fa-solid fa-file-circle-plus"></i>
+          <span>Exam Builder & Rules</span>
+        </button>
+        <button onclick="switchTab('sessions')" id="tabBtnSessions" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5">
+          <i class="fa-solid fa-door-open"></i>
+          <span>Launch Hall Session</span>
+        </button>
+        <button onclick="switchTab('grading')" id="tabBtnGrading" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5">
+          <i class="fa-solid fa-award"></i>
+          <span>Grading & Results</span>
+        </button>
+        <a href="/admin" class="ml-2 px-3 py-2 text-xs font-semibold rounded-lg bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 transition-all flex items-center space-x-1.5">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Live Admin Radar</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: EXAM BUILDER & PROCTORING RULES                         -->
+    <!-- ============================================================== -->
+    <div id="tabContentExams" class="space-y-6">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6 mb-6">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-pen-ruler"></i>
+            </div>
+            <div>
+              <h2 class="text-xl font-extrabold text-white">Create & Configure SIT Exam</h2>
+              <p class="text-xs text-slate-400">Define course parameters, questions, and security lockdown rules.</p>
+            </div>
+          </div>
+          <button onclick="addNewQuestion()" class="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1.5">
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span>Add Question</span>
+          </button>
+        </div>
+
+        <form id="examAuthorForm" onsubmit="saveExamConfiguration(event)" class="space-y-6">
+          
+          <!-- Basic Details -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Exam Title</label>
+              <input type="text" id="exTitle" required placeholder="e.g. CS-301 Computer Architecture Final Exam" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Course Code</label>
+              <input type="text" id="exCode" required placeholder="e.g. CS-301" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500">
+            </div>
+          </div>
+
+          <!-- Proctoring Rules Section -->
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-4">
+            <span class="text-xs font-bold text-violet-400 uppercase tracking-wider block">Institutional Security Rules (SIT Standard)</span>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Time Limit (Minutes)</label>
+                <input type="number" id="exDuration" required min="10" max="360" value="90" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Max Allowed Violations</label>
+                <input type="number" id="exMaxViolations" required min="1" max="10" value="3" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
+                <span class="text-[10px] text-slate-500">Auto-suspends on violation #3</span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Total Passing Marks</label>
+                <input type="number" id="exTotalMarks" required min="10" max="500" value="100" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-6 pt-2 border-t border-slate-800/80 text-xs">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="exRandomize" checked class="w-4 h-4 rounded bg-slate-900 border-slate-800 text-violet-600 focus:ring-0">
+                <span class="text-slate-300">Shuffle questions and choices per student</span>
+              </label>
+
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="exAutoSuspend" checked class="w-4 h-4 rounded bg-slate-900 border-slate-800 text-red-600 focus:ring-0">
+                <span class="text-slate-300">Auto-lock device upon 3rd violation</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Instructions -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">SIT Student Instructions & Hall Policy</label>
+            <textarea id="exDescription" rows="2" placeholder="e.g. No outside materials allowed. Exiting fullscreen will flag your exam." class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500"></textarea>
+          </div>
+
+          <!-- Questions Container -->
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Exam Questions (<span id="questionCountDisplay">0</span>)</span>
+            </div>
+
+            <div id="questionsList" class="space-y-4">
+              <!-- Dynamically populated question cards -->
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <div class="flex justify-end pt-4 border-t border-slate-800">
+            <button type="submit" class="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center space-x-2">
+              <i class="fa-solid fa-floppy-disk text-xs"></i>
+              <span>Save & Publish Exam</span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: IN-HALL SESSION LAUNCH CENTER                           -->
+    <!-- ============================================================== -->
+    <div id="tabContentSessions" class="hidden space-y-6 max-w-4xl mx-auto">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+        <div class="flex items-center space-x-3 mb-2">
+          <img src="/sit-logo.png" alt="SIT Logo" class="w-8 h-8 rounded-full object-contain">
+          <h2 class="text-xl font-bold text-white">SIT In-Hall Examination Session</h2>
+        </div>
+        <p class="text-xs text-slate-400 mb-6">Create a live room session with a dynamic PIN code for students in the hall.</p>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-medium text-slate-400 uppercase tracking-wider block">Current Active Hall PIN:</span>
+            <div class="text-4xl font-extrabold text-violet-400 font-mono tracking-widest mt-1" id="activePinDisplay">------</div>
+            <p class="text-[11px] text-slate-500 mt-1" id="activeSessionInfo">No session loaded</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <button onclick="copySessionPin()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg flex items-center justify-center space-x-1.5">
+              <i class="fa-regular fa-copy"></i>
+              <span>Copy PIN</span>
+            </button>
+            <a href="/admin" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg flex items-center justify-center space-x-1.5 shadow-md">
+              <i class="fa-solid fa-satellite-dish"></i>
+              <span>Open Admin Radar</span>
+            </a>
+          </div>
+        </div>
+
+        <form onsubmit="handleCreateSession(event)" class="space-y-4 border-t border-slate-800 pt-6">
+          <h3 class="text-sm font-bold text-white">Create New In-Hall Session</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Room / Hall Name</label>
+              <input type="text" id="newRoomName" required value="SIT Main Hall - Section A" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Duration (Minutes)</label>
+              <input type="number" id="newRoomDuration" required value="90" min="10" max="300" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Allowed Subnet IP (Optional)</label>
+              <input type="text" id="newRoomSubnet" placeholder="e.g. 192.168.30." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-key"></i>
+            <span>Generate New Session & PIN Code</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: GRADING LEDGER & CSV EXPORT                             -->
+    <!-- ============================================================== -->
+    <div id="tabContentGrading" class="hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div class="flex items-center space-x-3">
+            <img src="/sit-logo.png" alt="SIT Logo" class="w-10 h-10 rounded-full object-contain">
+            <div>
+              <h2 class="text-xl font-bold text-white">SIT Official Submission Ledger</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Automated objective scores and subjective essay evaluation.</p>
+            </div>
+          </div>
+          <button onclick="exportCSV()" class="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 shadow-md">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Export Official Grade Sheet (CSV)</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-800 rounded-xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800 uppercase tracking-wider font-semibold">
+              <tr>
+                <th class="p-3.5">Student ID</th>
+                <th class="p-3.5">Full Name</th>
+                <th class="p-3.5">Seat</th>
+                <th class="p-3.5">Status</th>
+                <th class="p-3.5">Violations</th>
+                <th class="p-3.5">Auto Score</th>
+                <th class="p-3.5">Essay Score</th>
+                <th class="p-3.5">Total</th>
+                <th class="p-3.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="gradingTableBody" class="divide-y divide-slate-800 text-slate-300">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentExam = null;
+    let activeSession = null;
+    let questionsList = [];
+
+    async function init() {
+      try {
+        const exRes = await fetch('/api/exams');
+        const exData = await exRes.json();
+        if (exData.exams && exData.exams.length > 0) {
+          currentExam = exData.exams[0];
+          questionsList = currentExam.questions || [];
+          populateExamForm();
+        }
+
+        const sessRes = await fetch('/api/sessions');
+        const sessData = await sessRes.json();
+        if (sessData.sessions && sessData.sessions.length > 0) {
+          activeSession = sessData.sessions[0];
+          document.getElementById('activePinDisplay').textContent = activeSession.pin;
+          document.getElementById('activeSessionInfo').textContent = `${activeSession.roomName || 'Campus Hall'} • Duration: ${activeSession.durationMinutes}m`;
+        }
+      } catch (err) {
+        console.error('Failed to init Teacher portal:', err);
+      }
+    }
+
+    function populateExamForm() {
+      if (!currentExam) return;
+      document.getElementById('exTitle').value = currentExam.title || '';
+      document.getElementById('exCode').value = currentExam.courseCode || '';
+      document.getElementById('exDuration').value = currentExam.durationMinutes || 90;
+      document.getElementById('exMaxViolations').value = currentExam.maxViolations || 3;
+      document.getElementById('exTotalMarks').value = currentExam.totalMarks || 100;
+      document.getElementById('exRandomize').checked = Boolean(currentExam.randomizeQuestions);
+      document.getElementById('exAutoSuspend').checked = currentExam.autoSuspend !== undefined ? Boolean(currentExam.autoSuspend) : true;
+      document.getElementById('exDescription').value = currentExam.description || '';
+
+      renderQuestions();
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questionsList');
+      document.getElementById('questionCountDisplay').textContent = questionsList.length;
+
+      container.innerHTML = questionsList.map((q, idx) => `
+        <div class="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <span class="text-xs font-bold text-violet-400 font-mono">Q${idx + 1} (${q.type})</span>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-400">${q.points || 10} Pts</span>
+              <button type="button" onclick="deleteQuestion(${idx})" class="text-slate-500 hover:text-red-400 text-xs">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <p class="text-sm text-white font-medium">${q.prompt}</p>
+          ${q.options && q.options.length > 0 ? `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400 pl-2">
+              ${q.options.map(opt => `<div class="${opt === q.correctAnswer ? 'text-emerald-400 font-semibold' : ''}">• ${opt} ${opt === q.correctAnswer ? '✓' : ''}</div>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function addNewQuestion() {
+      const promptText = prompt('Enter question text:');
+      if (!promptText) return;
+
+      const type = prompt('Enter question type (MCQ, SHORT_ANSWER, or ESSAY):', 'MCQ').toUpperCase();
+      let options = [];
+      let correctAnswer = '';
+
+      if (type === 'MCQ') {
+        const opts = prompt('Enter 4 choices separated by commas:', 'Option A, Option B, Option C, Option D');
+        if (opts) {
+          options = opts.split(',').map(s => s.trim());
+          correctAnswer = options[0];
+        }
+      }
+
+      questionsList.push({
+        id: 'q_' + Date.now(),
+        order: questionsList.length + 1,
+        type: type === 'ESSAY' ? 'ESSAY' : (type === 'SHORT_ANSWER' ? 'SHORT_ANSWER' : 'MCQ'),
+        points: 10,
+        prompt: promptText,
+        options,
+        correctAnswer
+      });
+
+      renderQuestions();
+    }
+
+    function deleteQuestion(idx) {
+      questionsList.splice(idx, 1);
+      renderQuestions();
+    }
+
+    async function saveExamConfiguration(e) {
+      e.preventDefault();
+      const updated = {
+        id: currentExam ? currentExam.id : undefined,
+        title: document.getElementById('exTitle').value,
+        courseCode: document.getElementById('exCode').value,
+        durationMinutes: Number(document.getElementById('exDuration').value),
+        maxViolations: Number(document.getElementById('exMaxViolations').value) || 3,
+        totalMarks: Number(document.getElementById('exTotalMarks').value),
+        randomizeQuestions: document.getElementById('exRandomize').checked,
+        autoSuspend: document.getElementById('exAutoSuspend').checked,
+        description: document.getElementById('exDescription').value,
+        questions: questionsList
+      };
+
+      const res = await fetch('/api/exams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      const data = await res.json();
+      if (data.success) {
+        currentExam = data.exam;
+        alert('SIT Exam saved and proctoring rules updated successfully!');
+      }
+    }
+
+    async function handleCreateSession(e) {
+      e.preventDefault();
+      if (!currentExam) return alert('Please save or select an exam first.');
+
+      const res = await fetch('/api/sessions/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          examId: currentExam.id,
+          roomName: document.getElementById('newRoomName').value,
+          durationMinutes: Number(document.getElementById('newRoomDuration').value),
+          allowedSubnet: document.getElementById('newRoomSubnet').value.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        activeSession = data.session;
+        document.getElementById('activePinDisplay').textContent = activeSession.pin;
+        document.getElementById('activeSessionInfo').textContent = `${activeSession.roomName} • PIN: ${activeSession.pin}`;
+        alert(`New SIT In-Hall Session Activated!\nPIN: ${activeSession.pin}\nStudents can now sign in with this PIN.`);
+      }
+    }
+
+    function copySessionPin() {
+      if (!activeSession) return;
+      navigator.clipboard.writeText(activeSession.pin);
+      alert('Copied SIT Hall Session PIN: ' + activeSession.pin);
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabContentExams').classList.toggle('hidden', tab !== 'exams');
+      document.getElementById('tabContentSessions').classList.toggle('hidden', tab !== 'sessions');
+      document.getElementById('tabContentGrading').classList.toggle('hidden', tab !== 'grading');
+
+      document.getElementById('tabBtnExams').className = tab === 'exams' ? 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-violet-600 text-white shadow-md' : 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white';
+      document.getElementById('tabBtnSessions').className = tab === 'sessions' ? 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-violet-600 text-white shadow-md' : 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white';
+      document.getElementById('tabBtnGrading').className = tab === 'grading' ? 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-violet-600 text-white shadow-md' : 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white';
+
+      if (tab === 'grading') loadGradingLedger();
+    }
+
+    async function loadGradingLedger() {
+      if (!activeSession) return;
+      const tbody = document.getElementById('gradingTableBody');
+      tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center text-slate-500">Loading ledger...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/grades/session/${activeSession.pin}`);
+        const data = await res.json();
+        if (data.results) {
+          if (data.results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-500">No submissions yet. Once students submit their exams, their grades will appear here.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.results.map(r => `
+            <tr class="hover:bg-slate-900/60 transition-colors">
+              <td class="p-3.5 font-mono font-bold text-white">${r.studentId}</td>
+              <td class="p-3.5 text-slate-200">${r.studentName}</td>
+              <td class="p-3.5 text-slate-400">${r.seatNumber || 'N/A'}</td>
+              <td class="p-3.5">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.status === 'SUBMITTED' ? 'bg-indigo-600/20 text-indigo-400' : (r.violationsCount >= 3 ? 'bg-red-600 text-white' : 'bg-emerald-500/20 text-emerald-400')}">${r.status}</span>
+              </td>
+              <td class="p-3.5 font-mono ${r.violationsCount >= 3 ? 'text-red-400 font-bold' : 'text-slate-400'}">${r.violationsCount}</td>
+              <td class="p-3.5 font-mono text-slate-200">${r.autoScore} / ${r.maxAutoScore}</td>
+              <td class="p-3.5 font-mono text-slate-400">${r.manualScore !== null ? r.manualScore : 'Pending'}</td>
+              <td class="p-3.5 font-mono font-bold text-emerald-400">${r.totalScore}</td>
+              <td class="p-3.5 text-right">
+                <button onclick="gradeManualEntry('${r.studentId}')" class="px-2.5 py-1 bg-violet-600/20 hover:bg-violet-600 text-violet-300 hover:text-white rounded text-[11px] font-medium transition-colors">Grade Essay</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function gradeManualEntry(sId) {
+      if (!activeSession) return;
+      const score = prompt(`Enter subjective/essay score for student ${sId} (e.g. 28):`, '30');
+      if (score !== null) {
+        await fetch('/api/grades/grade-manual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionPin: activeSession.pin,
+            studentId: sId,
+            manualScore: Number(score)
+          })
+        });
+        loadGradingLedger();
+      }
+    }
+
+    function exportCSV() {
+      if (activeSession) {
+        window.open(`/api/grades/export-csv/${activeSession.pin}`, '_blank');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

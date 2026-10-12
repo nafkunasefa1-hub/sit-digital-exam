@@ -1,0 +1,17 @@
+{
+  "name": "digital-exam-system",
+  "version": "1.0.0",
+  "description": "Enterprise University Campus Digital Examination & Real-Time Lockdown Proctoring Platform",
+  "main": "server/src/index.js",
+  "scripts": {
+    "start": "node server/src/index.js",
+    "dev": "node server/src/index.js",
+    "seed": "node server/src/seed.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.1"
+  }
+}
