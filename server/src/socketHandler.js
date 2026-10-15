@@ -113,6 +113,27 @@ function setupWebSocket(wss) {
         const exam = session ? store.getExamById(session.examId) : null;
         const existingSub = store.getSubmission(data.sessionPin, data.studentId);
 
+        // Sanitize exam questions for student (STRIP correctAnswer so students cannot inspect answers!)
+        let sanitizedExam = null;
+        if (exam) {
+          sanitizedExam = {
+            id: exam.id,
+            title: exam.title,
+            courseCode: exam.courseCode,
+            description: exam.description,
+            durationMinutes: exam.durationMinutes,
+            totalMarks: exam.totalMarks,
+            questions: (exam.questions || []).map((q) => ({
+              id: q.id,
+              order: q.order,
+              type: q.type,
+              points: q.points,
+              prompt: q.prompt,
+              options: q.options || [],
+            })),
+          };
+        }
+
         ws.send(
           JSON.stringify({
             type: 'STUDENT_INIT_SUCCESS',
@@ -122,12 +143,11 @@ function setupWebSocket(wss) {
                   pin: session.pin,
                   roomName: session.roomName,
                   durationMinutes: session.durationMinutes,
-                  startTime: session.startTime,
                   status: session.status,
                   maxViolations: session.maxViolations || 3,
                 }
               : null,
-            exam: exam || null,
+            exam: sanitizedExam,
             savedAnswers: existingSub ? existingSub.answers : {},
             isSuspended: student.isSuspended,
           })

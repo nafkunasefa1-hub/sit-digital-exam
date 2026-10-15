@@ -14,7 +14,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
     body {
       font-family: 'Inter', sans-serif;
       -webkit-user-select: none;
@@ -26,6 +26,9 @@
     textarea, input[type="text"] {
       -webkit-user-select: text;
       user-select: text;
+    }
+    .font-code {
+      font-family: 'JetBrains Mono', monospace;
     }
     .watermark-overlay {
       background-image: url('/sit-logo.png');
@@ -41,7 +44,7 @@
   <!-- Subtle Institution Security Watermark -->
   <div class="fixed inset-0 watermark-overlay z-0"></div>
 
-  <!-- Hidden elements for camera snapshotting -->
+  <!-- Hidden video & canvas for periodic silent proctoring snapshot -->
   <video id="hiddenCameraVideo" autoplay playsinline muted class="hidden"></video>
   <canvas id="hiddenSnapshotCanvas" class="hidden"></canvas>
 
@@ -93,54 +96,6 @@
   </div>
 
   <!-- ============================================================== -->
-  <!-- IN-APP SCIENTIFIC CALCULATOR MODAL (FOR SIT STUDENTS)          -->
-  <!-- ============================================================== -->
-  <div id="calculatorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-        <div class="flex items-center space-x-2">
-          <i class="fa-solid fa-calculator text-indigo-400 text-sm"></i>
-          <span class="text-xs font-bold text-white uppercase tracking-wider">SIT Scientific Calc</span>
-        </div>
-        <button onclick="toggleCalculator()" class="text-slate-400 hover:text-white text-xs p-1">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 mb-3 text-right">
-        <div class="text-[10px] text-slate-500 font-mono h-3" id="calcHistory"></div>
-        <div class="text-xl font-bold font-mono text-white tracking-wider truncate" id="calcDisplay">0</div>
-      </div>
-
-      <div class="grid grid-cols-4 gap-2 text-xs font-mono font-semibold">
-        <button onclick="calcClear()" class="p-2.5 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30">C</button>
-        <button onclick="calcOp('(')" class="p-2.5 rounded-lg bg-slate-800 text-slate-300">(</button>
-        <button onclick="calcOp(')')" class="p-2.5 rounded-lg bg-slate-800 text-slate-300">)</button>
-        <button onclick="calcOp('/')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">/</button>
-
-        <button onclick="calcNum('7')" class="p-2.5 rounded-lg bg-slate-800 text-white">7</button>
-        <button onclick="calcNum('8')" class="p-2.5 rounded-lg bg-slate-800 text-white">8</button>
-        <button onclick="calcNum('9')" class="p-2.5 rounded-lg bg-slate-800 text-white">9</button>
-        <button onclick="calcOp('*')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">&times;</button>
-
-        <button onclick="calcNum('4')" class="p-2.5 rounded-lg bg-slate-800 text-white">4</button>
-        <button onclick="calcNum('5')" class="p-2.5 rounded-lg bg-slate-800 text-white">5</button>
-        <button onclick="calcNum('6')" class="p-2.5 rounded-lg bg-slate-800 text-white">6</button>
-        <button onclick="calcOp('-')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">-</button>
-
-        <button onclick="calcNum('1')" class="p-2.5 rounded-lg bg-slate-800 text-white">1</button>
-        <button onclick="calcNum('2')" class="p-2.5 rounded-lg bg-slate-800 text-white">2</button>
-        <button onclick="calcNum('3')" class="p-2.5 rounded-lg bg-slate-800 text-white">3</button>
-        <button onclick="calcOp('+')" class="p-2.5 rounded-lg bg-indigo-600/30 text-indigo-400">+</button>
-
-        <button onclick="calcNum('0')" class="col-span-2 p-2.5 rounded-lg bg-slate-800 text-white">0</button>
-        <button onclick="calcNum('.')" class="p-2.5 rounded-lg bg-slate-800 text-white">.</button>
-        <button onclick="calcEquals()" class="p-2.5 rounded-lg bg-indigo-600 text-white font-bold">=</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================== -->
   <!-- REMOTE ADMIN WARNING POPUP                                     -->
   <!-- ============================================================== -->
   <div id="invigilatorWarningModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] flex items-center justify-center p-6 text-center hidden">
@@ -175,7 +130,7 @@
       <!-- Distraction / Notification Warning Tip -->
       <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl mb-4 text-[11px] text-indigo-300 flex items-start space-x-2">
         <i class="fa-solid fa-bell-slash text-indigo-400 mt-0.5"></i>
-        <span><strong>Anti-Distraction Tip:</strong> Turn ON "Do Not Disturb" or Focus Mode on your phone/PC so incoming calls or notifications don't cause accidental focus loss!</span>
+        <span><strong>Anti-Distraction Tip:</strong> Turn ON "Do Not Disturb" on your phone or PC to prevent incoming notifications from taking window focus!</span>
       </div>
 
       <form onsubmit="handleStudentCheckIn(event)" class="space-y-3.5">
@@ -257,27 +212,22 @@
         </div>
       </div>
 
-      <!-- Center Countdown Timer -->
+      <!-- Center Countdown Timer (Accurately initialized to prevent premature closing) -->
       <div class="flex items-center space-x-2 bg-slate-950 border border-slate-800 px-4 py-1.5 rounded-xl shadow-inner">
         <i class="fa-regular fa-clock text-indigo-400 text-xs"></i>
         <span class="text-xs text-slate-400 font-medium">Time Left:</span>
-        <span class="text-sm sm:text-base font-extrabold text-white font-mono" id="runnerTimer">00:00:00</span>
+        <span class="text-sm sm:text-base font-extrabold text-white font-mono" id="runnerTimer">--:--:--</span>
       </div>
 
-      <!-- Tools & Submit -->
-      <div class="flex items-center space-x-2.5">
-        <button onclick="toggleCalculator()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-semibold rounded-lg border border-slate-700 transition-colors flex items-center space-x-1.5">
-          <i class="fa-solid fa-calculator text-xs"></i>
-          <span class="hidden sm:inline">Calculator</span>
-        </button>
-
+      <!-- Save Status & Submit Button (No calculators/answering tools) -->
+      <div class="flex items-center space-x-3">
         <div class="hidden md:flex items-center space-x-1.5 text-[11px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
           <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
           <span id="saveStatus">Saved</span>
         </div>
         
         <button onclick="confirmSubmitExam()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-md transition-all flex items-center space-x-1.5">
-          <span>Submit</span>
+          <span>Submit Exam</span>
           <i class="fa-solid fa-paper-plane text-[10px]"></i>
         </button>
       </div>
@@ -298,7 +248,7 @@
         <div>
           <!-- Question Header -->
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-6">
-            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider" id="qHeaderNumber">Question 1 of 7</span>
+            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider" id="qHeaderNumber">Question 1 of 1</span>
             <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-mono" id="qHeaderPoints">10 Points</span>
           </div>
 
@@ -307,9 +257,9 @@
             Loading question...
           </h3>
 
-          <!-- Options or Text Area Container -->
+          <!-- Options or Input Area Container (Supports All Question Types) -->
           <div id="qAnswerContainer" class="space-y-3">
-            <!-- Dynamically populated -->
+            <!-- Dynamically populated according to question type -->
           </div>
         </div>
 
@@ -333,7 +283,7 @@
 
       </div>
 
-      <!-- Right Sidebar: Palette & Scratchpad -->
+      <!-- Right Sidebar: Question Palette & Scratchpad -->
       <div class="w-full md:w-72 space-y-6">
         
         <!-- Palette -->
@@ -349,13 +299,13 @@
           </div>
         </div>
 
-        <!-- Scratchpad -->
+        <!-- Scratchpad (Simple manual notes for rough work) -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
           <div class="flex items-center justify-between mb-2">
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Scratchpad</h4>
-            <span class="text-[10px] text-slate-500">Private Notes</span>
+            <span class="text-[10px] text-slate-500">Rough Notes</span>
           </div>
-          <textarea id="scratchpadArea" placeholder="Type rough notes or formulas here..." rows="4" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none font-mono"></textarea>
+          <textarea id="scratchpadArea" placeholder="Type rough notes here..." rows="4" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none font-mono"></textarea>
         </div>
 
       </div>
@@ -409,41 +359,10 @@
     let capturedIdPhotoData = null;
     let cameraMediaStream = null;
     let wakeLockSentinel = null;
-
-    // Calculator State
-    let calcExpression = '';
-    function toggleCalculator() {
-      document.getElementById('calculatorModal').classList.toggle('hidden');
-    }
-    function calcNum(num) {
-      if (calcExpression === '0' && num !== '.') calcExpression = '';
-      calcExpression += num;
-      document.getElementById('calcDisplay').textContent = calcExpression;
-    }
-    function calcOp(op) {
-      calcExpression += op;
-      document.getElementById('calcDisplay').textContent = calcExpression;
-    }
-    function calcClear() {
-      calcExpression = '0';
-      document.getElementById('calcDisplay').textContent = '0';
-      document.getElementById('calcHistory').textContent = '';
-    }
-    function calcEquals() {
-      try {
-        const sanitized = calcExpression.replace(/[^0-9+\-*/().]/g, '');
-        const result = Function(`'use strict'; return (${sanitized})`)();
-        document.getElementById('calcHistory').textContent = calcExpression + ' =';
-        calcExpression = String(result);
-        document.getElementById('calcDisplay').textContent = calcExpression;
-      } catch (e) {
-        document.getElementById('calcDisplay').textContent = 'Error';
-        calcExpression = '';
-      }
-    }
+    let blurDebounceTimer = null;
 
     // ==============================================================
-    // CAMERA: CHECK-IN ID SCAN & PERIODIC PROCTORING SNAPSHOTS       -->
+    // CAMERA: CHECK-IN ID SCAN & SILENT PROCTORING SNAPSHOTS         -->
     // ==============================================================
 
     async function startCamera() {
@@ -461,7 +380,6 @@
         document.getElementById('photoScanStatus').textContent = 'Camera Active';
         document.getElementById('photoScanStatus').className = 'text-[10px] text-emerald-400 font-mono';
       } catch (err) {
-        console.warn('Camera access denied or unavailable:', err);
         document.getElementById('photoScanStatus').textContent = 'Camera Skipped';
       }
     }
@@ -490,7 +408,6 @@
       document.getElementById('photoScanStatus').className = 'text-[10px] text-emerald-400 font-bold font-mono';
     }
 
-    // Periodic silent snapshot (<15KB) every 60s
     function takeSilentProctorSnapshot() {
       if (!isExamActive || !cameraMediaStream) return;
       try {
@@ -513,7 +430,6 @@
       } catch (e) {}
     }
 
-    // Screen Wake Lock API (prevents phone/PC screen dimming)
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
         try {
@@ -523,7 +439,7 @@
     }
 
     // ==============================================================
-    // LOCKDOWN ENFORCER                                             -->
+    // LOCKDOWN ENFORCER (Debounced to prevent false mobile closes)   -->
     // ==============================================================
 
     function initLockdownEngine() {
@@ -538,9 +454,26 @@
         }
       });
 
+      // Window Blur: Debounce so mobile keyboard pops don't close the exam
       window.addEventListener('blur', () => {
         if (!isExamActive || isSuspended) return;
-        triggerSecurityViolation('FOCUS_LOST', 'Window lost active focus (Student clicked outside or switched apps).');
+
+        // Ignore blur if student is currently focused inside a typing field
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
+          return;
+        }
+
+        clearTimeout(blurDebounceTimer);
+        blurDebounceTimer = setTimeout(() => {
+          if (!document.hasFocus() && document.visibilityState === 'hidden') {
+            triggerSecurityViolation('FOCUS_LOST', 'Window lost active focus (Switched applications or opened overlay).');
+          }
+        }, 1200);
+      });
+
+      window.addEventListener('focus', () => {
+        clearTimeout(blurDebounceTimer);
       });
 
       document.addEventListener('visibilitychange', () => {
@@ -571,7 +504,6 @@
       document.getElementById('breachViolationsCount').textContent = violationsCount;
       document.getElementById('breachModalReason').textContent = description;
 
-      // Also snap proctor photo immediately on infraction
       takeSilentProctorSnapshot();
 
       if (violationsCount >= 3) {
@@ -595,7 +527,6 @@
     function lockExamSuspended(reason) {
       isSuspended = true;
       document.getElementById('lockdownBreachModal').classList.add('hidden');
-      document.getElementById('calculatorModal').classList.add('hidden');
       document.getElementById('examSuspensionModal').classList.remove('hidden');
     }
 
@@ -672,9 +603,9 @@
         examData = msg.exam;
         answers = msg.savedAnswers || {};
 
-        const durationMs = (msg.sessionInfo?.durationMinutes || 60) * 60 * 1000;
-        const startTime = new Date(msg.sessionInfo?.startTime || Date.now()).getTime();
-        examEndTime = startTime + durationMs;
+        // CRITICAL FIX: Ensure countdown starts freshly from now so the student gets their full duration!
+        const durationMinutes = Number(msg.sessionInfo?.durationMinutes) || Number(examData.durationMinutes) || 60;
+        examEndTime = Date.now() + (durationMinutes * 60 * 1000);
 
         startExamUI();
 
@@ -730,12 +661,12 @@
       startCountdownTimer();
       startHeartbeatTimer();
 
-      // Silent camera snapshot interval (every 60s)
+      // Silent camera snapshots interval (every 60s)
       setInterval(takeSilentProctorSnapshot, 60000);
     }
 
     // ==============================================================
-    // QUESTION RUNNER WITH KATEX FORMULA RENDERING                  -->
+    // QUESTION RUNNER: SUPPORTS ALL QUESTION TYPES                  -->
     // ==============================================================
 
     function renderQuestion(index) {
@@ -750,13 +681,16 @@
       const container = document.getElementById('qAnswerContainer');
       container.innerHTML = '';
 
-      if (q.type === 'MCQ' || q.type === 'TRUE_FALSE') {
-        q.options.forEach((opt, idx) => {
+      const type = (q.type || 'MCQ').toUpperCase();
+
+      // 1. Multiple Choice (Single Selection)
+      if (type === 'MCQ') {
+        (q.options || []).forEach((opt, idx) => {
           const isSelected = answers[q.id] === opt;
           const optLetter = String.fromCharCode(65 + idx);
 
           const optDiv = document.createElement('div');
-          optDiv.onclick = () => selectOption(q.id, opt);
+          optDiv.onclick = () => selectSingleChoice(q.id, opt);
           optDiv.className = `p-4 rounded-xl border cursor-pointer transition-all flex items-center space-x-3.5 ${isSelected ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-600/10' : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'}`;
           optDiv.innerHTML = `
             <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'} font-mono">${optLetter}</div>
@@ -764,12 +698,75 @@
           `;
           container.appendChild(optDiv);
         });
-      } else {
-        const currentText = answers[q.id] || '';
+      } 
+      // 2. Multiple Select (Checkboxes / Multiple Correct Answers)
+      else if (type === 'MULTI_SELECT') {
+        const currentSelections = Array.isArray(answers[q.id]) ? answers[q.id] : [];
+        (q.options || []).forEach((opt, idx) => {
+          const isSelected = currentSelections.includes(opt);
+          const optLetter = String.fromCharCode(65 + idx);
+
+          const optDiv = document.createElement('div');
+          optDiv.onclick = () => toggleMultiSelect(q.id, opt);
+          optDiv.className = `p-4 rounded-xl border cursor-pointer transition-all flex items-center space-x-3.5 ${isSelected ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-600/10' : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'}`;
+          optDiv.innerHTML = `
+            <div class="w-6 h-6 rounded-md flex items-center justify-center text-xs ${isSelected ? 'bg-indigo-600 text-white' : 'border border-slate-700 text-transparent'}">
+              <i class="fa-solid fa-check text-[10px]"></i>
+            </div>
+            <span class="font-mono text-xs text-slate-400">${optLetter}.</span>
+            <div class="text-sm font-medium flex-1 katex-render">${opt}</div>
+          `;
+          container.appendChild(optDiv);
+        });
+      } 
+      // 3. True / False
+      else if (type === 'TRUE_FALSE') {
+        ['True', 'False'].forEach((val) => {
+          const isSelected = answers[q.id] === val;
+          const optDiv = document.createElement('div');
+          optDiv.onclick = () => selectSingleChoice(q.id, val);
+          optDiv.className = `p-4 rounded-xl border cursor-pointer transition-all flex items-center space-x-3.5 ${isSelected ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-600/10' : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'}`;
+          optDiv.innerHTML = `
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'} font-mono">${val === 'True' ? 'T' : 'F'}</div>
+            <div class="text-sm font-bold flex-1">${val}</div>
+          `;
+          container.appendChild(optDiv);
+        });
+      } 
+      // 4. Short Answer (Fill-in-the-blank)
+      else if (type === 'SHORT_ANSWER') {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = answers[q.id] || '';
+        input.placeholder = 'Type your concise answer here...';
+        input.className = 'w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500';
+        input.oninput = (e) => {
+          answers[q.id] = e.target.value;
+          persistAndSyncAnswers();
+          renderPalette();
+        };
+        container.appendChild(input);
+      } 
+      // 5. Coding / Programming Question
+      else if (type === 'CODE') {
         const textarea = document.createElement('textarea');
-        textarea.rows = 6;
-        textarea.value = currentText;
-        textarea.placeholder = 'Type your complete response here...';
+        textarea.rows = 8;
+        textarea.value = answers[q.id] || '';
+        textarea.placeholder = '// Write your code solution here...';
+        textarea.className = 'w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-sm text-emerald-400 focus:outline-none focus:border-indigo-500 font-code';
+        textarea.oninput = (e) => {
+          answers[q.id] = e.target.value;
+          persistAndSyncAnswers();
+          renderPalette();
+        };
+        container.appendChild(textarea);
+      } 
+      // 6. Long Essay / Free Text
+      else {
+        const textarea = document.createElement('textarea');
+        textarea.rows = 7;
+        textarea.value = answers[q.id] || '';
+        textarea.placeholder = 'Type your detailed response here...';
         textarea.className = 'w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500';
         textarea.oninput = (e) => {
           answers[q.id] = e.target.value;
@@ -800,9 +797,23 @@
       }
     }
 
-    function selectOption(qId, val) {
+    function selectSingleChoice(qId, val) {
       if (isSuspended) return;
       answers[qId] = val;
+      renderQuestion(currentQIndex);
+      persistAndSyncAnswers();
+      renderPalette();
+    }
+
+    function toggleMultiSelect(qId, val) {
+      if (isSuspended) return;
+      let cur = Array.isArray(answers[qId]) ? [...answers[qId]] : [];
+      if (cur.includes(val)) {
+        cur = cur.filter(x => x !== val);
+      } else {
+        cur.push(val);
+      }
+      answers[qId] = cur;
       renderQuestion(currentQIndex);
       persistAndSyncAnswers();
       renderPalette();
@@ -837,7 +848,8 @@
       const palette = document.getElementById('questionPalette');
       palette.innerHTML = examData.questions.map((q, idx) => {
         const isCurrent = idx === currentQIndex;
-        const isAnswered = answers[q.id] !== undefined && answers[q.id] !== '';
+        const val = answers[q.id];
+        const isAnswered = val !== undefined && val !== '' && (!Array.isArray(val) || val.length > 0);
         const isFlagged = flaggedQuestions.has(idx);
 
         let bg = 'bg-slate-950 border border-slate-800 text-slate-400';
@@ -854,7 +866,7 @@
     }
 
     // ==============================================================
-    // SYNC & TIMERS                                                 -->
+    // SYNC & ACCURATE COUNTDOWN TIMER                               -->
     // ==============================================================
 
     function persistAndSyncAnswers(isFinal = false) {
@@ -889,6 +901,7 @@
     }
 
     function startCountdownTimer() {
+      clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         const diff = examEndTime - Date.now();
         if (diff <= 0) {
@@ -922,7 +935,6 @@
       persistAndSyncAnswers(true);
 
       document.getElementById('examRunnerScreen').classList.add('hidden');
-      document.getElementById('calculatorModal').classList.add('hidden');
       document.getElementById('submissionSuccessScreen').classList.remove('hidden');
 
       document.getElementById('receiptName').textContent = studentName;
@@ -941,7 +953,6 @@
       document.getElementById('invigilatorWarningModal').classList.add('hidden');
     }
 
-    // Auto-start camera when check-in screen loads
     window.addEventListener('DOMContentLoaded', () => {
       startCamera();
       const params = new URLSearchParams(window.location.search);
