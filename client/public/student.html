@@ -15,17 +15,18 @@
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
+    body, #examRunnerScreen, #qPrompt, #qAnswerContainer, .katex, .katex * {
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
     }
-    * { -webkit-touch-callout: none; }
+    * { 
+      -webkit-touch-callout: none !important;
+    }
     textarea, input[type="text"] {
-      -webkit-user-select: text;
-      user-select: text;
+      -webkit-user-select: text !important;
+      user-select: text !important;
     }
     .font-code {
       font-family: 'JetBrains Mono', monospace;
@@ -37,6 +38,13 @@
       opacity: 0.04;
       pointer-events: none;
     }
+    /* Anti-print / save as PDF protection */
+    @media print {
+      html, body {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative" oncontextmenu="return false;">
@@ -47,6 +55,26 @@
   <!-- Hidden video & canvas for periodic silent proctoring snapshot -->
   <video id="hiddenCameraVideo" autoplay playsinline muted class="hidden"></video>
   <canvas id="hiddenSnapshotCanvas" class="hidden"></canvas>
+
+  <!-- ============================================================== -->
+  <!-- PRIVACY SHIELD: BLOCKS SCREENSHOTS & OBSCORES CONTENT ON BLUR  -->
+  <!-- ============================================================== -->
+  <div id="privacyShield" class="fixed inset-0 bg-slate-950/98 backdrop-blur-2xl z-[300] flex flex-col items-center justify-center p-6 text-center hidden select-none">
+    <div class="w-20 h-20 rounded-3xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/40 flex items-center justify-center text-4xl mb-4 shadow-2xl">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div class="flex items-center space-x-2 mb-2">
+      <img src="/sit-logo.png" alt="SIT Logo" class="w-6 h-6 rounded-full object-contain">
+      <span class="text-xs uppercase font-bold tracking-widest text-indigo-300">Shegger Institute of Technology</span>
+    </div>
+    <h3 class="text-2xl font-extrabold text-white mb-2">Examination Privacy Shield Active</h3>
+    <p class="text-xs sm:text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
+      Exam content is protected by university security policy. Taking screenshots, screen clipping, and window switching are prohibited.
+    </p>
+    <button type="button" onclick="document.getElementById('privacyShield').classList.add('hidden'); requestKioskFullscreen();" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg transition-all">
+      Resume Secure Exam View
+    </button>
+  </div>
 
   <!-- ============================================================== -->
   <!-- INESCAPABLE SUSPENSION QUARANTINE MODAL (3 VIOLATIONS)         -->
@@ -506,6 +534,54 @@
     function initLockdownEngine() {
       requestWakeLock();
 
+      // 1. Prevent Right-Click Context Menu
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      // 2. Prevent Copying Exam Content & Wipe Clipboard
+      document.addEventListener('copy', (e) => {
+        if (isExamActive) {
+          e.preventDefault();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('');
+          }
+          return false;
+        }
+      });
+
+      // 3. Prevent Cut outside of Typing Fields
+      document.addEventListener('cut', (e) => {
+        if (isExamActive) {
+          const tag = e.target.tagName;
+          if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+            e.preventDefault();
+            return false;
+          }
+        }
+      });
+
+      // 4. Prevent Selecting Question Text & Math Elements
+      document.addEventListener('selectstart', (e) => {
+        if (isExamActive) {
+          const tag = e.target.tagName;
+          if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+            e.preventDefault();
+            return false;
+          }
+        }
+      });
+
+      // 5. Prevent Dragging Text
+      document.addEventListener('dragstart', (e) => {
+        if (isExamActive) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // 6. Fullscreen Change Monitoring
       document.addEventListener('fullscreenchange', () => {
         if (!isExamActive || isSuspended) return;
         if (!document.fullscreenElement) {
@@ -515,9 +591,13 @@
         }
       });
 
-      // Window Blur: Debounce so mobile keyboard pops don't close the exam
+      // 7. Window Blur: Obscure screen with Privacy Shield instantly (blocks Snipping Tool / Screenshot tools)
       window.addEventListener('blur', () => {
         if (!isExamActive || isSuspended) return;
+
+        // Display privacy shield so any screen capture utility grabs only a blackout screen
+        const shield = document.getElementById('privacyShield');
+        if (shield) shield.classList.remove('hidden');
 
         // Ignore blur if student is currently focused inside a typing field
         const activeTag = document.activeElement ? document.activeElement.tagName : '';
@@ -535,21 +615,67 @@
 
       window.addEventListener('focus', () => {
         clearTimeout(blurDebounceTimer);
+        const shield = document.getElementById('privacyShield');
+        if (shield && !isSuspended) shield.classList.add('hidden');
       });
 
       document.addEventListener('visibilitychange', () => {
         if (!isExamActive || isSuspended) return;
         if (document.visibilityState === 'hidden') {
+          const shield = document.getElementById('privacyShield');
+          if (shield) shield.classList.remove('hidden');
           triggerSecurityViolation('APP_MINIMIZED', 'Exam window was minimized or placed into background.');
+        }
+      });
+
+      // 8. Block Screenshot Shortcuts & Forbidden Keys
+      window.addEventListener('keyup', (e) => {
+        if (isExamActive && (e.key === 'PrintScreen' || e.key === 'Snapshot')) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('');
+          }
+          triggerSecurityViolation('SCREENSHOT_ATTEMPT', 'Screenshot attempt detected (PrintScreen key blocked).');
         }
       });
 
       window.addEventListener('keydown', (e) => {
         if (!isExamActive || isSuspended) return;
+
+        // Screenshot Combos: PrintScreen, Win+Shift+S, Cmd+Shift+3/4/5
+        const isScreenshot =
+          e.key === 'PrintScreen' ||
+          e.key === 'Snapshot' ||
+          ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3', '4', '5', 's', 'S'].includes(e.key)) ||
+          (e.altKey && (e.key === 'PrintScreen' || e.key === 'Snapshot'));
+
+        if (isScreenshot) {
+          e.preventDefault();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('');
+          }
+          triggerSecurityViolation('SCREENSHOT_ATTEMPT', 'Screenshot attempt blocked by security policy.');
+          return false;
+        }
+
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        const isTyping = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+
+        // Block Copy/Cut/Select-All outside typing inputs
+        if ((e.ctrlKey || e.metaKey) && ['c', 'C', 'x', 'X', 'a', 'A'].includes(e.key) && !isTyping) {
+          e.preventDefault();
+          return false;
+        }
+
+        // Block Save Page (Ctrl+S), Print (Ctrl+P), View Source (Ctrl+U)
+        if ((e.ctrlKey || e.metaKey) && ['p', 'P', 's', 'S', 'u', 'U'].includes(e.key)) {
+          e.preventDefault();
+          return false;
+        }
+
+        // Block DevTools & Switching Keys
         if (
           e.key === 'F12' ||
-          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-          (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+          (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
           (e.altKey && e.key === 'Tab')
         ) {
           e.preventDefault();

@@ -268,7 +268,13 @@
             <p class="text-xs text-red-300">Their exams are locked. Review their infractions and take action (Lift Suspension or Disqualify).</p>
           </div>
         </div>
-        <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-600 text-white" id="suspendedBadge">0 Suspended</span>
+        <div class="flex items-center space-x-2">
+          <button onclick="dismissAllSuspensions()" class="px-3 py-1 bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-500/40 text-xs font-semibold rounded-lg flex items-center space-x-1.5 transition-colors">
+            <i class="fa-solid fa-broom"></i>
+            <span>Clear Quarantine</span>
+          </button>
+          <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-600 text-white" id="suspendedBadge">0 Suspended</span>
+        </div>
       </div>
 
       <div id="suspendedGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -467,7 +473,6 @@
               <option value="Chemistry I|CHEM-101">Chemistry I (CHEM-101)</option>
               <option value="Physics I|PHYS-101">Physics I (PHYS-101)</option>
               <option value="English I|ENGL-101">English I (ENGL-101)</option>
-              <option value="Computer Science|CS-301">Computer Science (CS-301)</option>
             </select>
           </div>
         </div>
@@ -501,6 +506,97 @@
           <button type="submit" class="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center justify-center space-x-1.5">
             <i class="fa-solid fa-check"></i>
             <span>Register Faculty</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- EDIT TEACHER MODAL                                             -->
+  <!-- ============================================================== -->
+  <div id="editTeacherModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-violet-500/40 rounded-2xl p-7 max-w-lg w-full shadow-2xl relative space-y-4">
+      
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30 flex items-center justify-center text-base">
+            <i class="fa-solid fa-user-pen"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Edit Faculty Member</h3>
+            <p class="text-[11px] text-slate-400">Modify teacher profile, PIN, credentials, and course assignment</p>
+          </div>
+        </div>
+        <button onclick="closeEditTeacherModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div id="editTeacherError" class="hidden p-3 bg-red-500/20 border border-red-500/40 text-red-300 rounded-xl text-xs"></div>
+
+      <form onsubmit="handleUpdateTeacher(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="editTeacherId">
+
+        <div>
+          <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Full Legal Name</label>
+          <input type="text" id="editTeacherName" required placeholder="e.g. Dr. Dawit Mengistu" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Department</label>
+            <input type="text" id="editTeacherDept" required placeholder="e.g. Dept of Mathematics" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Assigned Course</label>
+            <select id="editTeacherCourse" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500 font-semibold">
+              <option value="Calculus I|MATH-101">Calculus I (MATH-101)</option>
+              <option value="Chemistry I|CHEM-101">Chemistry I (CHEM-101)</option>
+              <option value="Physics I|PHYS-101">Physics I (PHYS-101)</option>
+              <option value="English I|ENGL-101">English I (ENGL-101)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Institutional Email</label>
+            <input type="email" id="editTeacherEmail" placeholder="dawit.m@sit.edu.et" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Faculty ID</label>
+            <input type="text" id="editTeacherFacultyId" placeholder="SIT-FAC-106" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500 font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1 border-t border-slate-800">
+          <div>
+            <label class="block font-semibold text-purple-400 uppercase tracking-wider mb-1">Faculty 6-Digit PIN</label>
+            <input type="text" id="editTeacherPin" maxlength="6" placeholder="e.g. 556677" class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-center text-sm font-mono font-bold tracking-widest text-purple-300 focus:outline-none focus:border-purple-400">
+            <p class="text-[10px] text-slate-500 mt-0.5">PIN login for Teacher Portal.</p>
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-400 uppercase tracking-wider mb-1">Password</label>
+            <input type="text" id="editTeacherPassword" placeholder="New password or leave unchanged" class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-white focus:outline-none focus:border-purple-400 font-mono">
+            <p class="text-[10px] text-slate-500 mt-0.5">Plaintext/login password.</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Account Status</label>
+          <select id="editTeacherStatus" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500 font-semibold">
+            <option value="ACTIVE">ACTIVE (Authorized to create/manage exams)</option>
+            <option value="INACTIVE">INACTIVE (Access Suspended)</option>
+          </select>
+        </div>
+
+        <div class="flex space-x-3 pt-3">
+          <button type="button" onclick="closeEditTeacherModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Save Teacher Changes</span>
           </button>
         </div>
       </form>
@@ -774,6 +870,10 @@
 
     function handleSessionChange(pin) {
       currentSessionPin = pin;
+      studentsMap = {};
+      updateMetrics();
+      renderStudentsGrid();
+      renderStudentRecordsTable();
       updateHeaderSessionView();
       refreshAllStudentsData();
 
@@ -1036,7 +1136,10 @@
     }
 
     function updateMetrics() {
-      const list = Object.values(studentsMap);
+      let list = Object.values(studentsMap);
+      if (currentSessionPin !== 'ALL') {
+        list = list.filter(s => !s.sessionPin || s.sessionPin === currentSessionPin);
+      }
       const total = list.length;
       const suspended = list.filter(s => s.status === 'SUSPENDED' || s.isSuspended).length;
       const warnings = list.filter(s => (s.violationsCount > 0 && s.violationsCount < 3 && !s.isSuspended)).length;
@@ -1088,7 +1191,44 @@
         `).join('');
       } else {
         qSection.classList.add('hidden');
+        qGrid.innerHTML = '';
       }
+    }
+
+    function dismissAllSuspensions() {
+      let list = Object.values(studentsMap);
+      if (currentSessionPin !== 'ALL') {
+        list = list.filter(s => !s.sessionPin || s.sessionPin === currentSessionPin);
+      }
+      const suspendedStudents = list.filter(s => s.status === 'SUSPENDED' || s.isSuspended);
+
+      if (suspendedStudents.length === 0) {
+        document.getElementById('suspendedSection').classList.add('hidden');
+        return;
+      }
+
+      if (!confirm(`Clear quarantine and lift suspension for all ${suspendedStudents.length} suspended student(s)?`)) return;
+
+      suspendedStudents.forEach(s => {
+        const targetPin = s.sessionPin || (activeSession ? activeSession.pin : currentSessionPin);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'ADMIN_ACTION',
+            sessionPin: targetPin,
+            studentId: s.studentId,
+            action: 'RESET_VIOLATIONS'
+          }));
+        }
+        s.status = 'ACTIVE';
+        s.isSuspended = false;
+        s.violationsCount = 0;
+        s.violations = [];
+      });
+
+      updateMetrics();
+      renderStudentsGrid();
+      renderStudentRecordsTable();
+      showNotificationToast('Quarantine Cleared', `Suspension lifted and violations reset for ${suspendedStudents.length} student(s).`, 'warning');
     }
 
     function renderStudentsGrid() {
@@ -1097,6 +1237,9 @@
       const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
 
       let list = Object.values(studentsMap);
+      if (currentSessionPin !== 'ALL') {
+        list = list.filter(s => !s.sessionPin || s.sessionPin === currentSessionPin);
+      }
 
       if (currentFilter === 'SUSPENDED') {
         list = list.filter(s => s.status === 'SUSPENDED' || s.isSuspended);
@@ -1565,6 +1708,10 @@
             </div>
 
             <div class="flex items-center space-x-2 pt-2 border-t border-slate-800">
+              <button onclick="openEditTeacherModal('${t.id}')" class="px-3 py-1.5 bg-violet-950/60 hover:bg-violet-900/80 text-violet-300 border border-violet-800/60 rounded-lg text-xs font-semibold transition-colors flex items-center space-x-1" title="Edit Teacher Details">
+                <i class="fa-solid fa-user-pen text-[11px]"></i>
+                <span>Edit</span>
+              </button>
               <button onclick="toggleTeacherStatus('${t.id}', '${t.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'}')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors">
                 ${t.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
               </button>
@@ -1587,6 +1734,89 @@
 
     function closeAddTeacherModal() {
       document.getElementById('addTeacherModal').classList.add('hidden');
+    }
+
+    function openEditTeacherModal(id) {
+      const t = teachersList.find(x => x.id === id);
+      if (!t) return;
+
+      document.getElementById('editTeacherId').value = t.id;
+      document.getElementById('editTeacherName').value = t.name || '';
+      document.getElementById('editTeacherDept').value = t.department || '';
+
+      const courseSel = document.getElementById('editTeacherCourse');
+      const targetVal = `${t.course || 'Calculus I'}|${t.courseCode || 'MATH-101'}`;
+      let matched = false;
+      for (let opt of courseSel.options) {
+        if (opt.value === targetVal || opt.value.startsWith(t.course || '___')) {
+          opt.selected = true;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched && courseSel.options.length > 0) courseSel.options[0].selected = true;
+
+      document.getElementById('editTeacherEmail').value = t.email || '';
+      document.getElementById('editTeacherFacultyId').value = t.facultyId || '';
+      document.getElementById('editTeacherPin').value = t.pin || '';
+      document.getElementById('editTeacherPassword').value = t.password || '';
+      document.getElementById('editTeacherStatus').value = t.status || 'ACTIVE';
+
+      document.getElementById('editTeacherError').classList.add('hidden');
+      document.getElementById('editTeacherModal').classList.remove('hidden');
+    }
+
+    function closeEditTeacherModal() {
+      document.getElementById('editTeacherModal').classList.add('hidden');
+    }
+
+    async function handleUpdateTeacher(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('editTeacherError');
+      errBox.classList.add('hidden');
+
+      const id = document.getElementById('editTeacherId').value;
+      const name = document.getElementById('editTeacherName').value.trim();
+      const dept = document.getElementById('editTeacherDept').value.trim();
+      const courseVal = document.getElementById('editTeacherCourse').value.split('|');
+      const course = courseVal[0];
+      const courseCode = courseVal[1];
+      const email = document.getElementById('editTeacherEmail').value.trim();
+      const facultyId = document.getElementById('editTeacherFacultyId').value.trim();
+      const pin = document.getElementById('editTeacherPin').value.trim();
+      const password = document.getElementById('editTeacherPassword').value.trim();
+      const status = document.getElementById('editTeacherStatus').value;
+
+      try {
+        const res = await fetch(`/api/teachers/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            department: dept,
+            course,
+            courseCode,
+            email,
+            facultyId,
+            pin,
+            password,
+            status
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          closeEditTeacherModal();
+          showNotificationToast('Teacher Profile Updated', `${name}'s profile was successfully updated.`, 'warning');
+          await loadTeachers();
+        } else {
+          errBox.textContent = data.error || 'Failed to update teacher profile.';
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errBox.textContent = 'Server connection error: ' + err.message;
+        errBox.classList.remove('hidden');
+      }
     }
 
     async function handleCreateTeacher(e) {
@@ -1670,7 +1900,10 @@
     // ==============================================================
     function renderStudentRecordsTable() {
       const tbody = document.getElementById('studentRecordsTableBody');
-      const list = Object.values(studentsMap);
+      let list = Object.values(studentsMap);
+      if (currentSessionPin !== 'ALL') {
+        list = list.filter(s => !s.sessionPin || s.sessionPin === currentSessionPin);
+      }
 
       if (list.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-500">No student exam records found.</td></tr>';

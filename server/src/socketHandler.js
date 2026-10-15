@@ -338,7 +338,7 @@ function setupWebSocket(wss) {
               info.studentId === data.studentId &&
               sWs.readyState === sWs.OPEN
             ) {
-              if (data.action === 'LIFT_SUSPENSION') {
+              if (data.action === 'LIFT_SUSPENSION' || data.action === 'RESET_VIOLATIONS') {
                 sWs.send(
                   JSON.stringify({
                     type: 'EXAM_RESUMED',
