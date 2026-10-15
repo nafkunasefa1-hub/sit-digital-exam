@@ -1,0 +1,72 @@
+[
+  {
+    "id": "fac_101",
+    "name": "Dr. Tsegaye Alemu",
+    "email": "tsegaye.alemu@sit.edu.et",
+    "username": "tsegaye.a",
+    "password": "sit@faculty2024",
+    "pin": "112233",
+    "facultyId": "SIT-FAC-101",
+    "department": "Department of Mathematics",
+    "course": "Calculus I",
+    "courseCode": "MATH-101",
+    "status": "ACTIVE",
+    "createdAt": "2026-10-10T08:00:00.000Z"
+  },
+  {
+    "id": "fac_102",
+    "name": "Dr. Bethlehem Desta",
+    "email": "bethlehem.desta@sit.edu.et",
+    "username": "bethlehem.d",
+    "password": "sit@faculty2024",
+    "pin": "223344",
+    "facultyId": "SIT-FAC-102",
+    "department": "Department of Chemical Sciences",
+    "course": "Chemistry I",
+    "courseCode": "CHEM-101",
+    "status": "ACTIVE",
+    "createdAt": "2026-10-10T08:00:00.000Z"
+  },
+  {
+    "id": "fac_103",
+    "name": "Prof. Yohannes Haile",
+    "email": "yohannes.haile@sit.edu.et",
+    "username": "yohannes.h",
+    "password": "sit@faculty2024",
+    "pin": "334455",
+    "facultyId": "SIT-FAC-103",
+    "department": "Department of Applied Physics",
+    "course": "Physics I",
+    "courseCode": "PHYS-101",
+    "status": "ACTIVE",
+    "createdAt": "2026-10-10T08:00:00.000Z"
+  },
+  {
+    "id": "fac_104",
+    "name": "Dr. Selamawit Bekele",
+    "email": "selamawit.bekele@sit.edu.et",
+    "username": "selamawit.b",
+    "password": "sit@faculty2024",
+    "pin": "445566",
+    "facultyId": "SIT-FAC-104",
+    "department": "Department of Languages & Academic Writing",
+    "course": "English I",
+    "courseCode": "ENGL-101",
+    "status": "ACTIVE",
+    "createdAt": "2026-10-10T08:00:00.000Z"
+  },
+  {
+    "id": "fac_105",
+    "name": "SIT Faculty Instructor",
+    "email": "teacher@sit.edu.et",
+    "username": "teacher",
+    "password": "sit@faculty2024",
+    "pin": "112233",
+    "facultyId": "SIT-FAC-100",
+    "department": "General Engineering Faculty",
+    "course": "Calculus I",
+    "courseCode": "MATH-101",
+    "status": "ACTIVE",
+    "createdAt": "2026-10-10T08:00:00.000Z"
+  }
+]

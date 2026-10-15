@@ -9,6 +9,7 @@ const examsRouter = require('./routes/exams');
 const sessionsRouter = require('./routes/sessions');
 const gradesRouter = require('./routes/grades');
 const { router: authRouter } = require('./routes/auth');
+const { router: teachersRouter } = require('./routes/teachers');
 const { setupWebSocket } = require('./socketHandler');
 const { seedDatabase } = require('./seed');
 
@@ -28,6 +29,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/exams', examsRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/grades', gradesRouter);
+app.use('/api/teachers', teachersRouter);
 
 // Platform Routes
 app.get('/student', (req, res) => {

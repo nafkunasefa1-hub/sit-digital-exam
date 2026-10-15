@@ -355,17 +355,20 @@ function seedDatabase() {
     }
   }
 
-  // Create an active In-Hall session for Calculus I if no sessions exist
+  // Ensure active In-Hall sessions exist for the quarter courses
   const existingSessions = store.getAllSessions();
-  if (existingSessions.length === 0) {
-    const calcExam = store.getExamById('exam_calculus_1') || quarterExams[0];
-    const s1 = store.createSession(calcExam.id, 'Main Campus Hall - Section A', 90, {
-      subject: 'Calculus I',
-      courseCode: 'MATH-101',
-      instructorName: 'Dr. Tsegaye Alemu',
-      instructions: 'Calculus I midterm. Kiosk lockdown active. Scientific calculators permitted.'
-    });
-    console.log('✅ Created Initial Hall Session for Calculus I. PIN:', s1.pin);
+  const existingSubjects = new Set(existingSessions.map(s => (s.subject || '').toLowerCase()));
+
+  for (const qExam of quarterExams) {
+    if (!existingSubjects.has(qExam.subject.toLowerCase())) {
+      const s = store.createSession(qExam.id, `Main Campus Hall - ${qExam.subject}`, 90, {
+        subject: qExam.subject,
+        courseCode: qExam.courseCode,
+        instructorName: qExam.instructorName,
+        instructions: qExam.instructions || 'Standard examination policy applies.'
+      });
+      console.log(`✅ Created Active Hall Session for ${qExam.subject}. PIN: ${s.pin}`);
+    }
   }
 }
 

@@ -7,6 +7,18 @@ router.get('/', (req, res) => {
   res.json({ success: true, sessions: store.getAllSessions() });
 });
 
+// GET all students across all sessions (University-wide Admin view)
+router.get('/all-students', (req, res) => {
+  res.json({ success: true, students: store.getAllStudentsAcrossSessions() });
+});
+
+// GET single student full audit & submission details
+router.get('/:pin/student/:studentId', (req, res) => {
+  const details = store.getStudentFullDetails(req.params.pin, req.params.studentId);
+  if (!details) return res.status(404).json({ success: false, error: 'Student or session not found.' });
+  res.json({ success: true, ...details });
+});
+
 // GET session by PIN
 router.get('/:pin', (req, res) => {
   const session = store.getSession(req.params.pin);

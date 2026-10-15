@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { findTeacherByCredentials } = require('./teachers');
 
 // Institutional Security Credentials for Shegger Institute of Technology (SIT)
 // (These can be customized by the institution at any time)
@@ -58,6 +59,23 @@ router.post('/login', (req, res) => {
         name: cred.name
       });
     }
+
+    // Check dynamic teachers registry added by Admin
+    const dynamicTeacher = findTeacherByCredentials(username, password, pin);
+    if (dynamicTeacher) {
+      const token = generateToken('TEACHER');
+      return res.json({
+        success: true,
+        token,
+        role: 'TEACHER',
+        name: dynamicTeacher.name,
+        email: dynamicTeacher.email,
+        course: dynamicTeacher.course,
+        courseCode: dynamicTeacher.courseCode,
+        facultyId: dynamicTeacher.facultyId
+      });
+    }
+
     return res.status(401).json({ success: false, error: 'Invalid Faculty credentials or Faculty Passcode.' });
   }
 

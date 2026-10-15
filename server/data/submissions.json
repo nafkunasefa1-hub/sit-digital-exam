@@ -9,5 +9,17 @@
     "submittedAt": null,
     "autoGraded": false,
     "lastSaved": "2026-10-12T17:16:20.918Z"
+  },
+  "478827_TEST-STU-01": {
+    "pin": "478827",
+    "studentId": "TEST-STU-01",
+    "answers": {
+      "calc_q1": "3",
+      "calc_q5": "f'(c)"
+    },
+    "score": null,
+    "submittedAt": null,
+    "autoGraded": false,
+    "lastSaved": "2026-10-15T17:34:53.936Z"
   }
 }

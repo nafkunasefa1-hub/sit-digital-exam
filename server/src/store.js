@@ -24,9 +24,8 @@ function loadData() {
     }
     if (fs.existsSync(SESSIONS_FILE)) {
       sessions = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8'));
-      // Clean any mock/simulated students from stored sessions so new real students join cleanly
       for (const pin in sessions) {
-        sessions[pin].students = {};
+        sessions[pin].students = sessions[pin].students || {};
       }
     }
     if (fs.existsSync(SUBMISSIONS_FILE)) {
@@ -334,6 +333,55 @@ module.exports = {
 
   getAllSubmissionsForSession(pin) {
     return Object.values(submissions).filter((s) => s.pin === pin);
+  },
+
+  getAllStudentsAcrossSessions() {
+    const list = [];
+    for (const pin in sessions) {
+      const sess = sessions[pin];
+      const exam = exams.find((e) => e.id === sess.examId);
+      for (const studentId in (sess.students || {})) {
+        const st = sess.students[studentId];
+        list.push({
+          ...st,
+          sessionPin: pin,
+          roomName: sess.roomName || 'Campus Main Hall',
+          examTitle: sess.examTitle || (exam ? exam.title : 'Examination'),
+          subject: sess.subject || (exam ? exam.subject : 'Course'),
+          courseCode: sess.courseCode || (exam ? exam.courseCode : 'SIT-101'),
+          durationMinutes: sess.durationMinutes || 90,
+          scheduledStartTime: sess.scheduledStartTime || null,
+          sessionStatus: sess.status || 'ACTIVE'
+        });
+      }
+    }
+    return list;
+  },
+
+  getStudentFullDetails(pin, studentId) {
+    const session = sessions[pin];
+    if (!session || !session.students || !session.students[studentId]) return null;
+    const student = session.students[studentId];
+    const exam = exams.find((e) => e.id === session.examId);
+    const submission = submissions[`${pin}_${studentId}`] || { answers: {} };
+    return {
+      student,
+      session: {
+        pin: session.pin,
+        roomName: session.roomName,
+        examTitle: session.examTitle,
+        subject: session.subject || (exam ? exam.subject : 'Calculus I'),
+        courseCode: session.courseCode || (exam ? exam.courseCode : 'MATH-101'),
+        instructorName: session.instructorName || (exam ? exam.instructorName : 'Faculty Instructor'),
+        durationMinutes: session.durationMinutes,
+        scheduledStartTime: session.scheduledStartTime,
+        instructions: session.instructions,
+        status: session.status,
+        startTime: session.startTime
+      },
+      exam: exam || null,
+      submission
+    };
   },
 
   activeSockets,

@@ -74,16 +74,26 @@ function setupWebSocket(wss) {
       case 'INVIGILATOR_JOIN':
       case 'TEACHER_JOIN': {
         clientInfo.role = data.type === 'ADMIN_JOIN' ? 'ADMIN' : 'TEACHER';
-        clientInfo.sessionPin = data.sessionPin;
+        clientInfo.sessionPin = data.sessionPin || 'ALL';
         store.activeSockets.set(ws, clientInfo);
 
-        const session = store.getSession(data.sessionPin);
-        ws.send(
-          JSON.stringify({
-            type: 'SESSION_INIT',
-            session: session || null,
-          })
-        );
+        if (clientInfo.sessionPin === 'ALL' || !data.sessionPin) {
+          ws.send(
+            JSON.stringify({
+              type: 'ALL_SESSIONS_INIT',
+              sessions: store.getAllSessions(),
+              students: store.getAllStudentsAcrossSessions(),
+            })
+          );
+        } else {
+          const session = store.getSession(data.sessionPin);
+          ws.send(
+            JSON.stringify({
+              type: 'SESSION_INIT',
+              session: session || null,
+            })
+          );
+        }
         break;
       }
 
@@ -167,8 +177,10 @@ function setupWebSocket(wss) {
         );
 
         // Notify Admins and Teachers in real time
+        student.sessionPin = data.sessionPin;
         broadcastToAdminsAndTeachers(data.sessionPin, {
           type: 'STUDENT_STATUS_UPDATE',
+          sessionPin: data.sessionPin,
           student,
         });
         break;
@@ -376,13 +388,15 @@ function setupWebSocket(wss) {
   }
 
   function broadcastToAdminsAndTeachers(sessionPin, payload) {
+    if (payload && !payload.sessionPin) {
+      payload.sessionPin = sessionPin;
+    }
     const msg = JSON.stringify(payload);
     for (const [ws, info] of store.activeSockets.entries()) {
-      if (
-        (info.role === 'ADMIN' || info.role === 'TEACHER') &&
-        info.sessionPin === sessionPin &&
-        ws.readyState === ws.OPEN
-      ) {
+      const isRecipient = (info.role === 'ADMIN' || info.role === 'TEACHER') &&
+        (info.sessionPin === sessionPin || info.sessionPin === 'ALL' || !info.sessionPin);
+
+      if (isRecipient && ws.readyState === ws.OPEN) {
         ws.send(msg);
       }
     }

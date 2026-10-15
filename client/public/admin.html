@@ -3,13 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIT Admin Proctoring Command Center</title>
+  <title>SIT Admin Proctoring & Faculty Command Center</title>
   <link rel="icon" type="image/png" href="/sit-logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- KaTeX for High-Precision LaTeX Math Formulas in Questions & Student Answers -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
     body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
     .pulse-danger { animation: pulseDanger 1.2s infinite; }
     @keyframes pulseDanger {
       0%, 100% { opacity: 1; transform: scale(1); }
@@ -29,7 +36,7 @@
           <img src="/sit-logo.png" alt="SIT Logo" class="w-full h-full object-contain rounded-xl">
         </div>
         <h2 class="text-xl font-extrabold text-white">SIT Admin Command Gate</h2>
-        <p class="text-xs text-slate-400 mt-1">Chief Examination Proctoring & Telemetry Center</p>
+        <p class="text-xs text-slate-400 mt-1">Chief Examination Proctoring &amp; Telemetry Center</p>
       </div>
 
       <!-- Warning Notice -->
@@ -59,7 +66,7 @@
         <div class="text-[11px] text-slate-500 text-center">Institutional Master PIN: <strong class="text-red-400 font-mono">779900</strong></div>
         <button type="submit" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center space-x-2">
           <i class="fa-solid fa-shield-halved"></i>
-          <span>Verify & Unlock Radar Command</span>
+          <span>Verify &amp; Unlock Radar Command</span>
         </button>
       </form>
 
@@ -76,23 +83,18 @@
         <div class="text-[11px] text-slate-500 text-center">Default: <span class="text-red-400 font-mono">admin</span> / <span class="text-red-400 font-mono">sit@admin2024</span></div>
         <button type="submit" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center space-x-2">
           <i class="fa-solid fa-shield-halved"></i>
-          <span>Verify & Unlock Radar Command</span>
+          <span>Verify &amp; Unlock Radar Command</span>
         </button>
       </form>
-
     </div>
   </div>
 
-  <!-- ============================================================== -->
-  <!-- REAL-TIME TOAST NOTIFICATION CONTAINER (TOP-RIGHT)            -->
-  <!-- ============================================================== -->
-  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-md w-full pointer-events-none">
-    <!-- Notifications appear here dynamically -->
-  </div>
+  <!-- Real-Time Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-md w-full pointer-events-none"></div>
 
   <!-- Top Admin Bar -->
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
-    <div class="max-w-[1700px] mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="max-w-[1700px] mx-auto px-6 py-3 flex flex-wrap items-center justify-between gap-4">
       
       <!-- Brand & Hall Info with SIT Logo -->
       <div class="flex items-center space-x-3.5">
@@ -101,19 +103,32 @@
           <div>
             <div class="flex items-center space-x-2">
               <h1 class="text-base font-bold text-white tracking-tight">SIT Admin Command</h1>
-              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-red-600 text-white">PROCTOR</span>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-red-600 text-white">CHIEF PROCTOR</span>
             </div>
-            <p class="text-xs text-slate-400" id="headerRoomInfo">Shegger Institute of Technology &bull; Live Telemetry</p>
+            <p class="text-xs text-slate-400" id="headerRoomInfo">Shegger Institute of Technology &bull; University-Wide Radar</p>
           </div>
         </a>
       </div>
 
-      <!-- Center Session PIN & Hall Status -->
-      <div class="flex flex-wrap items-center gap-3">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-1.5 flex items-center space-x-3 shadow-inner">
-          <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Session PIN:</span>
-          <span class="text-xl font-extrabold text-red-400 font-mono tracking-widest cursor-pointer select-all" id="displaySessionPin" title="Session PIN">
-            ------
+      <!-- Center Active Session Selector & Hall Status -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        
+        <!-- Active Session Dropdown Selector -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 flex items-center space-x-2 shadow-inner">
+          <span class="text-[11px] text-slate-400 font-medium uppercase tracking-wider flex items-center gap-1">
+            <i class="fa-solid fa-satellite-dish text-red-400 animate-pulse"></i>
+            <span>Monitoring Session:</span>
+          </span>
+          <select id="adminSessionSelect" onchange="handleSessionChange(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-red-500 font-mono">
+            <option value="ALL">🌐 All Active Sessions (All Students)</option>
+          </select>
+        </div>
+
+        <!-- Session PIN Badge -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-1.5 flex items-center space-x-2 shadow-inner" id="sessionPinBadge">
+          <span class="text-xs text-slate-400 font-medium">PIN:</span>
+          <span class="text-base font-extrabold text-red-400 font-mono tracking-widest select-all cursor-pointer" id="displaySessionPin" title="Click to copy PIN">
+            ALL
           </span>
           <button onclick="copySessionPin()" class="text-slate-400 hover:text-red-400 transition-colors" title="Copy PIN">
             <i class="fa-regular fa-copy text-xs"></i>
@@ -136,19 +151,19 @@
           <span>Unlock Exam Now</span>
         </button>
 
-        <div class="hidden lg:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl">
+        <div class="hidden lg:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-xs text-slate-300 font-medium">Radar Live</span>
+          <span class="text-xs text-slate-300 font-medium">Live Radar</span>
         </div>
       </div>
 
-      <!-- Controls: Audio Toggle, Refresh, Exit, Logout -->
-      <div class="flex items-center space-x-3">
-        <button onclick="toggleAudioAlerts()" id="btnAudioToggle" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition-all flex items-center space-x-1.5">
+      <!-- Controls: Audio Toggle, Switch to Teacher, Logout -->
+      <div class="flex items-center space-x-2.5">
+        <button onclick="toggleAudioAlerts()" id="btnAudioToggle" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition-all flex items-center space-x-1.5">
           <i class="fa-solid fa-volume-high text-indigo-400" id="audioIcon"></i>
-          <span id="audioLabel">Sound Alerts ON</span>
+          <span id="audioLabel">Alerts ON</span>
         </button>
-        <a href="/teacher" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center space-x-1.5" title="Switch to Faculty Suite">
+        <a href="/teacher" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center space-x-1.5" title="Switch to Faculty Suite">
           <i class="fa-solid fa-chalkboard-user text-violet-400"></i>
           <span class="hidden sm:inline">Teacher Portal</span>
         </a>
@@ -159,10 +174,29 @@
       </div>
 
     </div>
+
+    <!-- Admin Navigation Tabs -->
+    <div class="max-w-[1700px] mx-auto px-6 pt-2 flex items-center space-x-2 border-t border-slate-800/80">
+      <button onclick="switchAdminTab('proctor')" id="adminTabBtn_proctor" class="px-4 py-2 text-xs font-bold rounded-t-xl transition-all flex items-center space-x-2 border-b-2 border-red-500 bg-slate-900/80 text-white">
+        <i class="fa-solid fa-radar text-red-400"></i>
+        <span>Live Proctoring &amp; Telemetry</span>
+      </button>
+      <button onclick="switchAdminTab('teachers')" id="adminTabBtn_teachers" class="px-4 py-2 text-xs font-semibold rounded-t-xl transition-all flex items-center space-x-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-900/30">
+        <i class="fa-solid fa-chalkboard-user text-violet-400"></i>
+        <span>Faculty &amp; Teachers Management</span>
+        <span id="badgeFacultyCount" class="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-800 text-slate-300 font-mono">5</span>
+      </button>
+      <button onclick="switchAdminTab('records')" id="adminTabBtn_records" class="px-4 py-2 text-xs font-semibold rounded-t-xl transition-all flex items-center space-x-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-900/30">
+        <i class="fa-solid fa-clipboard-check text-blue-400"></i>
+        <span>Student Exam Records &amp; Answers</span>
+      </button>
+    </div>
   </header>
 
-  <!-- Main Command View -->
-  <main class="max-w-[1700px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
+  <!-- ============================================================== -->
+  <!-- TAB 1: LIVE PROCTORING & TELEMETRY VIEW                        -->
+  <!-- ============================================================== -->
+  <main id="tabContent_proctor" class="max-w-[1700px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
 
     <!-- Metrics Row -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -222,9 +256,7 @@
 
     </div>
 
-    <!-- ============================================================== -->
-    <!-- SUSPENDED STUDENTS QUARANTINE SECTION (SHOWS IF COUNT > 0)    -->
-    <!-- ============================================================== -->
+    <!-- Suspended Students Quarantine Section -->
     <div id="suspendedSection" class="border-2 border-red-600 bg-red-950/20 rounded-2xl p-6 hidden">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center space-x-3">
@@ -250,7 +282,7 @@
       <!-- Search Input -->
       <div class="relative flex-1 max-w-md">
         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-        <input type="text" id="searchInput" oninput="renderStudentsGrid()" placeholder="Search Student ID, Name, or Seat..." class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500">
+        <input type="text" id="searchInput" oninput="renderStudentsGrid()" placeholder="Search Student ID, Name, Seat, or Course..." class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500">
       </div>
 
       <!-- Filter Buttons -->
@@ -276,30 +308,226 @@
       </div>
       <h3 class="text-base font-bold text-white mb-1">Awaiting Students to Sign In</h3>
       <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">
-        Students who enter the Session PIN on their phone or laptop will automatically appear here in real time.
+        Students who enter any Session PIN on their device will automatically appear here in real time.
       </p>
     </div>
 
   </main>
 
   <!-- ============================================================== -->
-  <!-- ADMIN TELEMETRY & ACTIONS FLYOUT DRAWER                        -->
+  <!-- TAB 2: FACULTY & TEACHERS MANAGEMENT VIEW                      -->
+  <!-- ============================================================== -->
+  <main id="tabContent_teachers" class="max-w-[1700px] mx-auto px-6 py-6 flex-1 w-full space-y-6 hidden">
+    
+    <!-- Top Action Bar & Stat Cards -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div>
+        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-chalkboard-user text-violet-400"></i>
+          <span>Faculty &amp; Teacher Management</span>
+        </h2>
+        <p class="text-xs text-slate-400">Register and manage instructors, assign quarter courses, and provision faculty access PINs.</p>
+      </div>
+
+      <button onclick="openAddTeacherModal()" class="px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center space-x-2">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Add New Teacher</span>
+      </button>
+    </div>
+
+    <!-- Faculty Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-slate-400">Total Registered Faculty</div>
+        <div class="text-2xl font-bold text-white font-mono mt-1" id="statTotalTeachers">0</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-emerald-400">Active Instructors</div>
+        <div class="text-2xl font-bold text-emerald-400 font-mono mt-1" id="statActiveTeachers">0</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-blue-400">Quarter Courses Assigned</div>
+        <div class="text-2xl font-bold text-blue-400 font-mono mt-1">4 Courses</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs text-purple-400">Default Auth Method</div>
+        <div class="text-sm font-semibold text-purple-300 font-mono mt-1.5">PIN &amp; Password Gate</div>
+      </div>
+    </div>
+
+    <!-- Search Teachers Toolbar -->
+    <div class="flex items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 p-3 rounded-xl">
+      <div class="relative flex-1 max-w-md">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+        <input type="text" id="searchTeacherInput" oninput="renderTeachersList()" placeholder="Search by Teacher Name, Course, Faculty ID, or Email..." class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500">
+      </div>
+      <button onclick="loadTeachers()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg flex items-center space-x-1.5">
+        <i class="fa-solid fa-rotate text-xs"></i>
+        <span>Refresh Roster</span>
+      </button>
+    </div>
+
+    <!-- Teachers Cards Grid -->
+    <div id="teachersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Loaded dynamically -->
+    </div>
+
+    <div id="teachersEmptyState" class="py-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20 hidden">
+      <div class="w-16 h-16 mx-auto rounded-full bg-slate-800/60 flex items-center justify-center text-slate-500 text-2xl mb-4">
+        <i class="fa-solid fa-chalkboard-user"></i>
+      </div>
+      <h3 class="text-base font-bold text-white mb-1">No Faculty Members Found</h3>
+      <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Click "Add New Teacher" above to provision the first teacher account.</p>
+    </div>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- TAB 3: STUDENT EXAM RECORDS & DETAILED ANSWERS LEDGER          -->
+  <!-- ============================================================== -->
+  <main id="tabContent_records" class="max-w-[1700px] mx-auto px-6 py-6 flex-1 w-full space-y-6 hidden">
+    
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div>
+        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-clipboard-check text-blue-400"></i>
+          <span>Student Exam Submissions &amp; Question-by-Question Answers</span>
+        </h2>
+        <p class="text-xs text-slate-400">Complete audit log of all exams taken, question responses, timestamps, and scores.</p>
+      </div>
+
+      <button onclick="refreshAllStudentsData()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center space-x-1.5">
+        <i class="fa-solid fa-rotate text-xs"></i>
+        <span>Refresh Submissions</span>
+      </button>
+    </div>
+
+    <!-- Table of All Students & Submissions -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+            <tr>
+              <th class="p-4">Student</th>
+              <th class="p-4">Exam &amp; Course</th>
+              <th class="p-4">Hall / PIN</th>
+              <th class="p-4">Standing Status</th>
+              <th class="p-4">Answers Given</th>
+              <th class="p-4">Violations</th>
+              <th class="p-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentRecordsTableBody" class="divide-y divide-slate-800/80 text-slate-200">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- ADD TEACHER MODAL                                              -->
+  <!-- ============================================================== -->
+  <div id="addTeacherModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-violet-500/40 rounded-2xl p-7 max-w-lg w-full shadow-2xl relative space-y-4">
+      
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30 flex items-center justify-center text-base">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Add New Teacher / Faculty</h3>
+            <p class="text-[11px] text-slate-400">Shegger Institute of Technology Faculty Registry</p>
+          </div>
+        </div>
+        <button onclick="closeAddTeacherModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div id="addTeacherError" class="hidden p-3 bg-red-500/20 border border-red-500/40 text-red-300 rounded-xl text-xs"></div>
+
+      <form onsubmit="handleCreateTeacher(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Full Legal Name</label>
+          <input type="text" id="newTeacherName" required placeholder="e.g. Dr. Dawit Mengistu" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Department</label>
+            <input type="text" id="newTeacherDept" required placeholder="e.g. Dept of Mathematics" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Assigned Course</label>
+            <select id="newTeacherCourse" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500 font-semibold">
+              <option value="Calculus I|MATH-101">Calculus I (MATH-101)</option>
+              <option value="Chemistry I|CHEM-101">Chemistry I (CHEM-101)</option>
+              <option value="Physics I|PHYS-101">Physics I (PHYS-101)</option>
+              <option value="English I|ENGL-101">English I (ENGL-101)</option>
+              <option value="Computer Science|CS-301">Computer Science (CS-301)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Institutional Email</label>
+            <input type="email" id="newTeacherEmail" placeholder="dawit.m@sit.edu.et" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 uppercase tracking-wider mb-1">Faculty ID</label>
+            <input type="text" id="newTeacherFacultyId" placeholder="SIT-FAC-106" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-violet-500 font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1 border-t border-slate-800">
+          <div>
+            <label class="block font-semibold text-purple-400 uppercase tracking-wider mb-1">Faculty 6-Digit PIN</label>
+            <input type="text" id="newTeacherPin" maxlength="6" placeholder="e.g. 556677" class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-center text-sm font-mono font-bold tracking-widest text-purple-300 focus:outline-none focus:border-purple-400">
+            <p class="text-[10px] text-slate-500 mt-0.5">Quick PIN login for Teacher Portal.</p>
+          </div>
+          <div>
+            <label class="block font-semibold text-purple-400 uppercase tracking-wider mb-1">Password</label>
+            <input type="password" id="newTeacherPassword" placeholder="sit@faculty2024" class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-white focus:outline-none focus:border-purple-400 font-mono">
+            <p class="text-[10px] text-slate-500 mt-0.5">Password fallback for login.</p>
+          </div>
+        </div>
+
+        <div class="flex space-x-3 pt-3">
+          <button type="button" onclick="closeAddTeacherModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>Register Faculty</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- COMPREHENSIVE STUDENT TELEMETRY & QUESTION RESPONSE DRAWER     -->
   <!-- ============================================================== -->
   <div id="adminDrawerBackdrop" onclick="closeAdminDrawer()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden transition-opacity"></div>
-  <div id="adminDrawer" class="fixed top-0 right-0 h-full w-full max-w-lg bg-slate-900 border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between shadow-2xl">
+  <div id="adminDrawer" class="fixed top-0 right-0 h-full w-full max-w-2xl bg-slate-900 border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between shadow-2xl">
     
     <!-- Drawer Header -->
     <div class="p-6 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-3.5">
         <div id="drawerAvatar" class="w-12 h-12 rounded-xl bg-red-600/20 text-red-400 border border-red-500/30 flex items-center justify-center text-lg font-bold">
           ST
         </div>
         <div>
           <h3 class="text-base font-bold text-white" id="drawerStudentName">Student Name</h3>
           <div class="flex items-center space-x-2 text-xs text-slate-400">
-            <span id="drawerStudentId" class="font-mono">STU-1001</span>
+            <span id="drawerStudentId" class="font-mono text-slate-300 font-semibold">STU-1001</span>
             <span>&bull;</span>
             <span id="drawerSeat">Seat: Row A-1</span>
+            <span>&bull;</span>
+            <span id="drawerSessionPinBadge" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">PIN: ------</span>
           </div>
         </div>
       </div>
@@ -311,7 +539,29 @@
     <!-- Drawer Body -->
     <div class="p-6 overflow-y-auto flex-1 space-y-6">
       
-      <!-- Status & Device Telemetry -->
+      <!-- 1. Exam Type & Metadata Card (Requested by User) -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Exam &amp; Subject Information</span>
+          </span>
+          <span id="drawerExamTypeBadge" class="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/30">MIDTERM EXAMINATION</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div><span class="text-slate-500">Course:</span> <strong class="text-white" id="drawerCourseTitle">Calculus I (MATH-101)</strong></div>
+          <div><span class="text-slate-500">Instructor:</span> <span class="text-slate-300" id="drawerInstructor">Faculty Instructor</span></div>
+          <div><span class="text-slate-500">Hall Room:</span> <span class="text-slate-300" id="drawerRoomName">Campus Main Hall</span></div>
+          <div><span class="text-slate-500">Duration:</span> <span class="text-slate-300" id="drawerDuration">90 Minutes</span></div>
+        </div>
+
+        <div class="pt-1.5 border-t border-slate-800/80 text-[11px] text-slate-400 leading-relaxed" id="drawerExamInstructions">
+          Instructions: Answer all questions. Kiosk lockdown and focus tracking are strictly enforced.
+        </div>
+      </div>
+
+      <!-- 2. Standing & Device Telemetry -->
       <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2 text-xs">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
           <span class="text-slate-400 font-semibold uppercase tracking-wider">Standing Status:</span>
@@ -320,12 +570,12 @@
         <div class="grid grid-cols-2 gap-2 pt-1 text-[11px]">
           <div><span class="text-slate-500">Platform:</span> <span id="drawerPlatform" class="text-white font-medium">Android Phone</span></div>
           <div><span class="text-slate-500">Battery:</span> <span id="drawerBattery" class="text-white font-medium">92%</span></div>
-          <div><span class="text-slate-500">Answered:</span> <span id="drawerAnswered" class="text-white font-medium">4 Questions</span></div>
+          <div><span class="text-slate-500">Answered:</span> <span id="drawerAnswered" class="text-white font-medium">0 Questions</span></div>
           <div><span class="text-slate-500">Violations:</span> <span id="drawerViolationsCount" class="text-red-400 font-bold font-mono">0 / 3</span></div>
         </div>
       </div>
 
-      <!-- Live Visual & ID Badge Verification (New Advanced Feature) -->
+      <!-- 3. Live Visual & ID Badge Verification -->
       <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2.5">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -363,12 +613,26 @@
         </div>
       </div>
 
-      <!-- Quick Admin Interventions -->
+      <!-- 4. Detailed Question-by-Question Response Audit ("under the text") -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-list-check"></i>
+            <span>Student Answers Breakdown (Question by Question)</span>
+          </span>
+          <span id="drawerAnswerProgress" class="text-[11px] font-mono text-slate-400">0 / 0 Answered</span>
+        </div>
+
+        <div id="drawerQuestionsAnswerList" class="space-y-3 text-xs">
+          <div class="text-slate-500 text-center py-4 text-xs">Loading student answers...</div>
+        </div>
+      </div>
+
+      <!-- 5. Quick Admin Interventions -->
       <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
         <span class="text-xs font-bold text-red-400 uppercase tracking-wider block">Admin Direct Actions</span>
         
         <div class="grid grid-cols-2 gap-2">
-          <!-- Lift Suspension button (highlighted if suspended) -->
           <button onclick="handleLiftSuspension()" id="btnDrawerLift" class="p-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-md">
             <i class="fa-solid fa-lock-open"></i>
             <span>Lift Suspension</span>
@@ -396,7 +660,7 @@
         </button>
       </div>
 
-      <!-- Chronological Audit Log -->
+      <!-- 6. Chronological Infraction Audit Log -->
       <div>
         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Infraction History</h4>
         <div id="drawerTimeline" class="space-y-2">
@@ -408,21 +672,26 @@
 
     <!-- Drawer Footer -->
     <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
-      <button onclick="closeAdminDrawer()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Close</button>
+      <button onclick="closeAdminDrawer()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Close Drawer</button>
     </div>
 
   </div>
 
   <!-- Scripts -->
   <script>
+    let allSessions = [];
+    let currentSessionPin = 'ALL';
     let activeSession = null;
-    let studentsMap = {};
+    let studentsMap = {}; // studentId -> student
+    let teachersList = [];
     let ws = null;
     let currentFilter = 'ALL';
     let selectedStudentId = null;
+    let selectedStudentPin = null;
     let audioAlertsEnabled = true;
+    let pollInterval = null;
 
-    // Web Audio Synthesizer for instant audible alerts without external files
+    // Web Audio Synthesizer for alerts
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playBeep(freq = 660, type = 'sine', duration = 0.2) {
       if (!audioAlertsEnabled) return;
@@ -447,47 +716,124 @@
       setTimeout(() => playBeep(550, 'sawtooth', 0.25), 180);
     }
 
-    function updateAdminSessionHeader(session) {
-      if (!session) return;
-      activeSession = session;
-      document.getElementById('displaySessionPin').textContent = session.pin;
-      document.getElementById('headerRoomInfo').textContent = `${session.roomName || 'Campus Main Hall'} • ${session.subject || 'Quarter Course'}`;
-      
-      const courseEl = document.getElementById('adminCourseBadge');
-      if (courseEl) {
-        if (session.subject) {
-          courseEl.textContent = `${session.subject} (${session.courseCode || 'SIT-101'})`;
-          courseEl.classList.remove('hidden');
+    // ==============================================================
+    // TAB SWITCHING: PROCTOR vs TEACHERS vs RECORDS
+    // ==============================================================
+    function switchAdminTab(tab) {
+      const tabs = ['proctor', 'teachers', 'records'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`adminTabBtn_${t}`);
+        const content = document.getElementById(`tabContent_${t}`);
+        if (t === tab) {
+          btn.className = 'px-4 py-2 text-xs font-bold rounded-t-xl transition-all flex items-center space-x-2 border-b-2 border-red-500 bg-slate-900/80 text-white';
+          content.classList.remove('hidden');
         } else {
-          courseEl.classList.add('hidden');
+          btn.className = 'px-4 py-2 text-xs font-semibold rounded-t-xl transition-all flex items-center space-x-2 border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-900/30';
+          content.classList.add('hidden');
         }
-      }
+      });
 
-      const isScheduled = Boolean(session.scheduledStartTime && new Date(session.scheduledStartTime).getTime() > Date.now());
-      const schedEl = document.getElementById('adminScheduleBadge');
+      if (tab === 'teachers') {
+        loadTeachers();
+      } else if (tab === 'records') {
+        renderStudentRecordsTable();
+      }
+    }
+
+    // ==============================================================
+    // MULTI-SESSION OR ALL-SESSIONS TRACKING
+    // ==============================================================
+    async function loadSessionsList() {
+      try {
+        const res = await fetch('/api/sessions');
+        const data = await res.json();
+        allSessions = data.sessions || [];
+
+        const sel = document.getElementById('adminSessionSelect');
+        const prevVal = sel.value;
+        sel.innerHTML = '<option value="ALL">🌐 All Active Sessions (All Students)</option>';
+
+        allSessions.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.pin;
+          opt.textContent = `PIN ${s.pin}: ${s.subject || s.examTitle || 'Exam'} (${s.roomName || 'Hall'})`;
+          sel.appendChild(opt);
+        });
+
+        if (prevVal && Array.from(sel.options).some(o => o.value === prevVal)) {
+          sel.value = prevVal;
+        } else {
+          sel.value = currentSessionPin;
+        }
+
+        updateHeaderSessionView();
+      } catch (err) {
+        console.error('Failed to load sessions:', err);
+      }
+    }
+
+    function handleSessionChange(pin) {
+      currentSessionPin = pin;
+      updateHeaderSessionView();
+      refreshAllStudentsData();
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'ADMIN_JOIN',
+          sessionPin: pin
+        }));
+      }
+    }
+
+    function updateHeaderSessionView() {
+      const pinBadge = document.getElementById('displaySessionPin');
+      const courseBadge = document.getElementById('adminCourseBadge');
+      const schedBadge = document.getElementById('adminScheduleBadge');
       const startBtn = document.getElementById('btnAdminStartNow');
 
-      if (isScheduled) {
-        if (schedEl) {
-          schedEl.textContent = `📅 Starts: ${new Date(session.scheduledStartTime).toLocaleTimeString()}`;
-          schedEl.classList.remove('hidden');
-        }
-        if (startBtn) startBtn.classList.remove('hidden');
+      if (currentSessionPin === 'ALL') {
+        pinBadge.textContent = 'ALL';
+        courseBadge.classList.add('hidden');
+        schedBadge.classList.add('hidden');
+        startBtn.classList.add('hidden');
+        document.getElementById('headerRoomInfo').textContent = `Shegger Institute of Technology • All Active Campus Sessions (${allSessions.length} Halls)`;
       } else {
-        if (schedEl) schedEl.classList.add('hidden');
-        if (startBtn) startBtn.classList.add('hidden');
+        const found = allSessions.find(s => s.pin === currentSessionPin);
+        if (found) {
+          activeSession = found;
+          pinBadge.textContent = found.pin;
+          document.getElementById('headerRoomInfo').textContent = `${found.roomName || 'Campus Main Hall'} • ${found.subject || 'Quarter Course'}`;
+          
+          if (found.subject) {
+            courseBadge.textContent = `${found.subject} (${found.courseCode || 'SIT-101'})`;
+            courseBadge.classList.remove('hidden');
+          } else {
+            courseBadge.classList.add('hidden');
+          }
+
+          const isScheduled = Boolean(found.scheduledStartTime && new Date(found.scheduledStartTime).getTime() > Date.now());
+          if (isScheduled) {
+            schedBadge.textContent = `📅 Starts: ${new Date(found.scheduledStartTime).toLocaleTimeString()}`;
+            schedBadge.classList.remove('hidden');
+            startBtn.classList.remove('hidden');
+          } else {
+            schedBadge.classList.add('hidden');
+            startBtn.classList.add('hidden');
+          }
+        }
       }
     }
 
     async function adminStartSessionNow() {
-      if (!activeSession) return;
+      if (!activeSession || currentSessionPin === 'ALL') return;
       if (!confirm(`🚀 Chief Invigilator Action: Unlock session PIN ${activeSession.pin} immediately? All waiting students will begin their exam.`)) return;
 
       try {
         const res = await fetch(`/api/sessions/${activeSession.pin}/start-now`, { method: 'POST' });
         const data = await res.json();
         if (data.success) {
-          updateAdminSessionHeader(data.session);
+          activeSession = data.session;
+          updateHeaderSessionView();
           showNotificationToast(
             '🚀 Examination Unlocked',
             `Session PIN ${activeSession.pin} is now live. Waiting students have transitioned to the active exam runner.`,
@@ -501,20 +847,54 @@
       }
     }
 
+    // ==============================================================
+    // DATA SYNC & WEBSOCKET ENGINE
+    // ==============================================================
     async function initData() {
+      await loadSessionsList();
+      await refreshAllStudentsData();
+      connectWebSocket(currentSessionPin);
+      loadTeachers();
+
+      // Reliable background poll (every 4 seconds) to guarantee real-time sync
+      if (!pollInterval) {
+        pollInterval = setInterval(refreshAllStudentsData, 4000);
+      }
+    }
+
+    async function refreshAllStudentsData() {
       try {
-        const sessRes = await fetch('/api/sessions');
-        const sessData = await sessRes.json();
-        if (sessData.sessions && sessData.sessions.length > 0) {
-          activeSession = sessData.sessions[0];
-          updateAdminSessionHeader(activeSession);
-          studentsMap = activeSession.students || {};
-          connectWebSocket(activeSession.pin);
-          updateMetrics();
-          renderStudentsGrid();
+        let res;
+        if (currentSessionPin === 'ALL') {
+          res = await fetch('/api/sessions/all-students');
+          const data = await res.json();
+          if (data.success && Array.isArray(data.students)) {
+            studentsMap = {};
+            data.students.forEach(s => {
+              studentsMap[s.studentId] = s;
+            });
+          }
+        } else {
+          res = await fetch(`/api/sessions/${currentSessionPin}`);
+          const data = await res.json();
+          if (data.success && data.session) {
+            activeSession = data.session;
+            studentsMap = {};
+            for (const sId in (data.session.students || {})) {
+              studentsMap[sId] = { ...data.session.students[sId], sessionPin: currentSessionPin };
+            }
+          }
+        }
+
+        updateMetrics();
+        renderStudentsGrid();
+        renderStudentRecordsTable();
+
+        if (selectedStudentId && studentsMap[selectedStudentId]) {
+          updateDrawerData(studentsMap[selectedStudentId]);
         }
       } catch (err) {
-        console.error('Failed to init Admin center:', err);
+        console.warn('Auto-refresh failed:', err);
       }
     }
 
@@ -525,7 +905,7 @@
       ws.onopen = () => {
         ws.send(JSON.stringify({
           type: 'ADMIN_JOIN',
-          sessionPin: pin
+          sessionPin: pin || 'ALL'
         }));
       };
 
@@ -533,48 +913,69 @@
         try {
           const msg = JSON.parse(event.data);
 
-          if (msg.type === 'SESSION_INIT') {
+          if (msg.type === 'ALL_SESSIONS_INIT') {
+            allSessions = msg.sessions || [];
+            studentsMap = {};
+            (msg.students || []).forEach(s => {
+              studentsMap[s.studentId] = s;
+            });
+            updateMetrics();
+            renderStudentsGrid();
+            renderStudentRecordsTable();
+          } else if (msg.type === 'SESSION_INIT') {
             if (msg.session) {
               activeSession = msg.session;
-              updateAdminSessionHeader(activeSession);
-              studentsMap = msg.session.students || {};
+              studentsMap = {};
+              for (const sId in (msg.session.students || {})) {
+                studentsMap[sId] = { ...msg.session.students[sId], sessionPin: msg.session.pin };
+              }
               updateMetrics();
               renderStudentsGrid();
+              renderStudentRecordsTable();
             }
           } else if (msg.type === 'STUDENT_STATUS_UPDATE') {
-            studentsMap[msg.student.studentId] = msg.student;
-            updateMetrics();
-            renderStudentsGrid();
-            if (selectedStudentId === msg.student.studentId) {
-              openAdminDrawer(msg.student.studentId);
+            const st = msg.student;
+            if (st) {
+              st.sessionPin = msg.sessionPin || st.sessionPin || currentSessionPin;
+              studentsMap[st.studentId] = st;
+              updateMetrics();
+              renderStudentsGrid();
+              renderStudentRecordsTable();
+              if (selectedStudentId === st.studentId) {
+                updateDrawerData(st);
+              }
             }
           } else if (msg.type === 'VIOLATION_NOTIFICATION') {
-            // Live infraction notification!
-            studentsMap[msg.student.studentId] = msg.student;
+            const st = msg.student;
+            st.sessionPin = msg.sessionPin || st.sessionPin;
+            studentsMap[st.studentId] = st;
             updateMetrics();
             renderStudentsGrid();
+            renderStudentRecordsTable();
             playBeep(700, 'sine', 0.25);
             showNotificationToast(
-              `🚨 Lockdown Violation: ${msg.student.studentName} (${msg.student.studentId})`,
-              `${msg.violation.type.replace('_', ' ')}: ${msg.violation.description}. (Infraction ${msg.student.violationsCount} of ${msg.maxAllowed})`,
+              `🚨 Lockdown Violation: ${st.studentName} (${st.studentId})`,
+              `${msg.violation.type.replace('_', ' ')}: ${msg.violation.description}. (Infraction ${st.violationsCount} of ${msg.maxAllowed})`,
               'warning'
             );
-            if (selectedStudentId === msg.student.studentId) {
-              openAdminDrawer(msg.student.studentId);
+            if (selectedStudentId === st.studentId) {
+              updateDrawerData(st);
             }
           } else if (msg.type === 'STUDENT_SUSPENDED_ALERT') {
-            // HIGH-PRIORITY 3-VIOLATION SUSPENSION ALERT
-            studentsMap[msg.student.studentId] = msg.student;
+            const st = msg.student;
+            st.sessionPin = msg.sessionPin || st.sessionPin;
+            studentsMap[st.studentId] = st;
             updateMetrics();
             renderStudentsGrid();
+            renderStudentRecordsTable();
             playSuspensionAlarm();
             showNotificationToast(
-              `⛔ STUDENT SUSPENDED: ${msg.student.studentName}`,
+              `⛔ STUDENT SUSPENDED: ${st.studentName}`,
               `Exceeded 3 violations! Exam has been locked and placed in quarantine.`,
               'danger'
             );
-            if (selectedStudentId === msg.student.studentId) {
-              openAdminDrawer(msg.student.studentId);
+            if (selectedStudentId === st.studentId) {
+              updateDrawerData(st);
             }
           } else if (msg.type === 'STUDENT_SNAPSHOT_UPDATE') {
             if (studentsMap[msg.studentId]) {
@@ -601,7 +1002,7 @@
       };
 
       ws.onclose = () => {
-        setTimeout(() => connectWebSocket(pin), 3000);
+        setTimeout(() => connectWebSocket(currentSessionPin), 3000);
       };
     }
 
@@ -628,7 +1029,6 @@
         toast.classList.remove('translate-y-2', 'opacity-0');
       }, 10);
 
-      // Auto dismiss after 8 seconds
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-x-full');
         setTimeout(() => toast.remove(), 400);
@@ -655,7 +1055,7 @@
       document.getElementById('countNormal').textContent = normal;
       document.getElementById('countSubmitted').textContent = submitted;
 
-      // Handle Quarantine Section
+      // Suspended Quarantine Section
       const qSection = document.getElementById('suspendedSection');
       const qGrid = document.getElementById('suspendedGrid');
       const qBadge = document.getElementById('suspendedBadge');
@@ -670,16 +1070,17 @@
               <div>
                 <h4 class="text-sm font-extrabold text-white">${s.studentName}</h4>
                 <p class="text-xs font-mono text-red-300">${s.studentId} • Seat: ${s.seatNumber || 'N/A'}</p>
+                <span class="text-[10px] text-red-400 font-mono">PIN: ${s.sessionPin || '---'}</span>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">3/3 VIOLATIONS</span>
             </div>
             <p class="text-[11px] text-red-200">Exam runner locked on student device. Action required.</p>
             <div class="flex items-center space-x-2 pt-2 border-t border-red-900/50">
-              <button onclick="liftSuspensionFor('${s.studentId}')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1">
+              <button onclick="liftSuspensionFor('${s.studentId}', '${s.sessionPin}')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1">
                 <i class="fa-solid fa-lock-open text-[10px]"></i>
                 <span>Lift Suspension</span>
               </button>
-              <button onclick="openAdminDrawer('${s.studentId}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
+              <button onclick="openAdminDrawer('${s.studentId}', '${s.sessionPin}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
                 Inspect
               </button>
             </div>
@@ -693,7 +1094,7 @@
     function renderStudentsGrid() {
       const grid = document.getElementById('studentsGrid');
       const empty = document.getElementById('emptyState');
-      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
 
       let list = Object.values(studentsMap);
 
@@ -709,9 +1110,11 @@
 
       if (search) {
         list = list.filter(s =>
-          s.studentName.toLowerCase().includes(search) ||
-          s.studentId.toLowerCase().includes(search) ||
-          (s.seatNumber && s.seatNumber.toLowerCase().includes(search))
+          (s.studentName || '').toLowerCase().includes(search) ||
+          (s.studentId || '').toLowerCase().includes(search) ||
+          (s.seatNumber && s.seatNumber.toLowerCase().includes(search)) ||
+          (s.subject && s.subject.toLowerCase().includes(search)) ||
+          (s.sessionPin && s.sessionPin.includes(search))
         );
       }
 
@@ -744,8 +1147,8 @@
         const devIcon = s.deviceInfo?.platform?.includes('Phone') ? 'fa-mobile-screen' : (s.deviceInfo?.platform?.includes('Tablet') ? 'fa-tablet-screen-button' : 'fa-laptop');
 
         return `
-          <div onclick="openAdminDrawer('${s.studentId}')" class="border ${borderClass} rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between">
-            <div class="flex items-start justify-between gap-1 mb-2">
+          <div onclick="openAdminDrawer('${s.studentId}', '${s.sessionPin}')" class="border ${borderClass} rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between">
+            <div class="flex items-start justify-between gap-1 mb-1.5">
               <div class="truncate">
                 <div class="text-xs font-bold text-white truncate">${s.studentName}</div>
                 <div class="text-[10px] font-mono text-slate-400 truncate">${s.studentId}</div>
@@ -753,7 +1156,7 @@
               <div>${statusBadge}</div>
             </div>
 
-            <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-2 mt-2">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-2 mt-1.5">
               <span class="truncate"><i class="fa-solid fa-chair text-slate-500 mr-1"></i>${s.seatNumber || 'N/A'}</span>
               <div class="flex items-center space-x-1.5 text-slate-400">
                 <i class="fa-solid ${devIcon} text-[10px]"></i>
@@ -762,7 +1165,7 @@
             </div>
 
             <div class="mt-2 text-[10px] flex items-center justify-between text-slate-500">
-              <span>Ans: <strong class="text-slate-300 font-mono">${s.answeredCount || 0}</strong></span>
+              <span class="font-mono text-blue-400">PIN: ${s.sessionPin || '---'}</span>
               <span class="${isSuspended ? 'text-red-400 font-bold' : (isWarning ? 'text-amber-400 font-bold' : 'text-emerald-400')}">
                 ${s.violationsCount} Violations
               </span>
@@ -788,15 +1191,31 @@
       renderStudentsGrid();
     }
 
-    function openAdminDrawer(studentId) {
+    // ==============================================================
+    // ADVANCED STUDENT INSPECTION DRAWER & ANSWERS AUDIT
+    // ==============================================================
+    async function openAdminDrawer(studentId, pin) {
       selectedStudentId = studentId;
+      selectedStudentPin = pin || studentsMap[studentId]?.sessionPin || currentSessionPin;
+
       const s = studentsMap[studentId];
       if (!s) return;
 
+      updateDrawerData(s);
+
+      document.getElementById('adminDrawerBackdrop').classList.remove('hidden');
+      document.getElementById('adminDrawer').classList.remove('translate-x-full');
+
+      // Fetch comprehensive Question-by-Question responses from server
+      await loadStudentDetailedAnswers(selectedStudentPin, studentId);
+    }
+
+    function updateDrawerData(s) {
       document.getElementById('drawerStudentName').textContent = s.studentName;
       document.getElementById('drawerStudentId').textContent = s.studentId;
       document.getElementById('drawerSeat').textContent = `Seat: ${s.seatNumber || 'Unassigned'}`;
-      document.getElementById('drawerAvatar').textContent = s.studentName.slice(0, 2).toUpperCase();
+      document.getElementById('drawerSessionPinBadge').textContent = `PIN: ${s.sessionPin || selectedStudentPin || '---'}`;
+      document.getElementById('drawerAvatar').textContent = (s.studentName || 'ST').slice(0, 2).toUpperCase();
       document.getElementById('drawerPlatform').textContent = `${s.deviceInfo?.platform || 'Web'} (${s.deviceInfo?.os || 'Unknown'})`;
       document.getElementById('drawerBattery').textContent = `${s.deviceInfo?.battery || 100}%`;
       document.getElementById('drawerAnswered').textContent = `${s.answeredCount || 0} Questions`;
@@ -820,7 +1239,7 @@
         liveImg.src = s.latestSnapshot;
         liveImg.classList.remove('hidden');
         livePlaceholder.classList.add('hidden');
-        document.getElementById('drawerPhotoTimestamp').textContent = 'Updated';
+        document.getElementById('drawerPhotoTimestamp').textContent = 'Live Proctored';
       } else {
         liveImg.classList.add('hidden');
         livePlaceholder.classList.remove('hidden');
@@ -847,12 +1266,12 @@
         document.getElementById('btnDrawerLift').classList.add('hidden');
       }
 
-      // Populate Infraction History
+      // Infraction History
       const timeline = document.getElementById('drawerTimeline');
       if (!s.violations || s.violations.length === 0) {
         timeline.innerHTML = `
-          <div class="p-4 border border-slate-800 rounded-xl bg-slate-950/60 text-center text-xs text-slate-500">
-            <i class="fa-solid fa-circle-check text-emerald-500 text-sm mb-1.5 block"></i>
+          <div class="p-3 border border-slate-800 rounded-xl bg-slate-950/60 text-center text-xs text-slate-500">
+            <i class="fa-solid fa-circle-check text-emerald-500 text-sm mb-1 block"></i>
             Clean record. No lockdown infractions recorded.
           </div>
         `;
@@ -873,24 +1292,128 @@
           `;
         }).reverse().join('');
       }
+    }
 
-      document.getElementById('adminDrawerBackdrop').classList.remove('hidden');
-      document.getElementById('adminDrawer').classList.remove('translate-x-full');
+    async function loadStudentDetailedAnswers(pin, studentId) {
+      const container = document.getElementById('drawerQuestionsAnswerList');
+      container.innerHTML = '<div class="text-slate-500 text-center py-4 text-xs">Loading student exam responses and formulas...</div>';
+
+      try {
+        const res = await fetch(`/api/sessions/${pin}/student/${studentId}`);
+        const data = await res.json();
+
+        if (!data.success) {
+          container.innerHTML = `<div class="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-xl text-xs">${data.error || 'Could not load exam data.'}</div>`;
+          return;
+        }
+
+        const session = data.session || {};
+        const exam = data.exam || {};
+        const submission = data.submission || { answers: {} };
+        const studentAnswers = submission.answers || {};
+
+        // Update Exam Card in Drawer
+        document.getElementById('drawerCourseTitle').textContent = `${session.subject || exam.subject || 'Quarter Course'} (${session.courseCode || exam.courseCode || 'SIT-101'})`;
+        document.getElementById('drawerInstructor').textContent = session.instructorName || exam.instructorName || 'Faculty Instructor';
+        document.getElementById('drawerRoomName').textContent = session.roomName || 'Campus Main Hall';
+        document.getElementById('drawerDuration').textContent = `${session.durationMinutes || exam.durationMinutes || 90} Minutes`;
+        document.getElementById('drawerExamInstructions').textContent = `Guidelines: ${session.instructions || exam.instructions || 'Standard examination policy applies.'}`;
+
+        // Detect Exam Type
+        const titleUpper = (exam.title || session.examTitle || '').toUpperCase();
+        let examType = 'MIDTERM EXAMINATION';
+        if (titleUpper.includes('FINAL')) examType = 'FINAL EXAMINATION';
+        else if (titleUpper.includes('QUIZ')) examType = 'ACADEMIC QUIZ';
+        else if (titleUpper.includes('LAB')) examType = 'LABORATORY ASSESSMENT';
+        document.getElementById('drawerExamTypeBadge').textContent = examType;
+
+        const questions = exam.questions || [];
+        const answeredCount = Object.keys(studentAnswers).filter(k => studentAnswers[k] !== undefined && studentAnswers[k] !== '').length;
+        document.getElementById('drawerAnswerProgress').textContent = `${answeredCount} / ${questions.length} Answered`;
+
+        if (questions.length === 0) {
+          container.innerHTML = '<div class="text-slate-500 text-center py-4 text-xs">No questions loaded for this examination session.</div>';
+          return;
+        }
+
+        container.innerHTML = questions.map((q, idx) => {
+          const ans = studentAnswers[q.id];
+          const hasAnswered = ans !== undefined && ans !== '' && (!Array.isArray(ans) || ans.length > 0);
+          const ansText = Array.isArray(ans) ? ans.join(', ') : (ans || '');
+
+          return `
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2">
+              <div class="flex items-center justify-between text-[11px] border-b border-slate-800/80 pb-1.5">
+                <span class="font-bold text-white flex items-center gap-1.5">
+                  <span class="w-5 h-5 rounded bg-blue-500/20 text-blue-400 font-mono flex items-center justify-center text-[10px]">#${idx + 1}</span>
+                  <span>Question ${idx + 1}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] bg-slate-800 text-slate-300 font-mono">${q.type || 'MCQ'}</span>
+                </span>
+                <span class="text-slate-400 font-mono text-[10px]">${q.points || 10} pts</span>
+              </div>
+
+              <!-- Question Prompt with Math -->
+              <div class="text-xs text-slate-200 py-1 leading-relaxed prompt-render font-sans">
+                ${q.prompt}
+              </div>
+
+              <!-- Student Submitted Response Under the Text (Requested by user) -->
+              <div class="pt-2 border-t border-slate-800/60">
+                <span class="text-[10px] uppercase font-bold tracking-wider ${hasAnswered ? 'text-indigo-400' : 'text-slate-500'} block mb-1">
+                  ${hasAnswered ? '✓ Student Submitted Response:' : '✕ Student Response:'}
+                </span>
+
+                ${hasAnswered ? `
+                  <div class="p-3 bg-indigo-950/30 border border-indigo-500/40 rounded-xl text-xs text-white leading-relaxed font-mono select-all">
+                    ${ansText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+                  </div>
+                ` : `
+                  <div class="p-2.5 bg-slate-950 border border-slate-800/80 rounded-xl text-xs text-slate-500 italic">
+                    Not yet answered by student
+                  </div>
+                `}
+
+                ${q.correctAnswer ? `
+                  <div class="mt-2 text-[10px] text-emerald-400 bg-emerald-950/20 border border-emerald-900/40 p-2 rounded-lg flex items-start gap-1.5">
+                    <i class="fa-solid fa-key mt-0.5"></i>
+                    <div><strong>Correct Answer Key:</strong> <span class="font-mono">${q.correctAnswer}</span></div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Auto-render math in questions and answers
+        if (window.renderMathInElement) {
+          renderMathInElement(container, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `<div class="p-3 bg-red-500/20 border border-red-500/40 text-red-300 rounded-xl text-xs">Error loading student answers: ${err.message}</div>`;
+      }
     }
 
     function closeAdminDrawer() {
       selectedStudentId = null;
+      selectedStudentPin = null;
       document.getElementById('adminDrawerBackdrop').classList.add('hidden');
       document.getElementById('adminDrawer').classList.add('translate-x-full');
     }
 
     // Direct Admin Actions
-    function liftSuspensionFor(sId) {
-      if (!activeSession) return;
+    function liftSuspensionFor(sId, pin) {
+      const targetPin = pin || selectedStudentPin || (activeSession ? activeSession.pin : currentSessionPin);
       if (confirm(`Lift suspension for student ${sId}? Their exam will be instantly unlocked.`)) {
         ws.send(JSON.stringify({
           type: 'ADMIN_ACTION',
-          sessionPin: activeSession.pin,
+          sessionPin: targetPin,
           studentId: sId,
           action: 'LIFT_SUSPENSION'
         }));
@@ -899,16 +1422,17 @@
     }
 
     function handleLiftSuspension() {
-      if (selectedStudentId) liftSuspensionFor(selectedStudentId);
+      if (selectedStudentId) liftSuspensionFor(selectedStudentId, selectedStudentPin);
     }
 
     function handleAdminWarn() {
-      if (!selectedStudentId || !activeSession) return;
+      if (!selectedStudentId) return;
+      const targetPin = selectedStudentPin || (activeSession ? activeSession.pin : currentSessionPin);
       const msg = prompt('Enter alert message to display on student device:', 'ADMIN ALERT: Look directly at your screen. You have committed an infraction.');
       if (msg) {
         ws.send(JSON.stringify({
           type: 'ADMIN_ACTION',
-          sessionPin: activeSession.pin,
+          sessionPin: targetPin,
           studentId: selectedStudentId,
           action: 'SEND_WARNING',
           payload: { message: msg }
@@ -917,11 +1441,12 @@
     }
 
     function handleAdminAddTime(mins) {
-      if (!selectedStudentId || !activeSession) return;
+      if (!selectedStudentId) return;
+      const targetPin = selectedStudentPin || (activeSession ? activeSession.pin : currentSessionPin);
       if (confirm(`Grant +${mins} minutes of extra time?`)) {
         ws.send(JSON.stringify({
           type: 'ADMIN_ACTION',
-          sessionPin: activeSession.pin,
+          sessionPin: targetPin,
           studentId: selectedStudentId,
           action: 'ADD_TIME',
           payload: { minutes: mins }
@@ -930,11 +1455,12 @@
     }
 
     function handleAdminForceSubmit() {
-      if (!selectedStudentId || !activeSession) return;
+      if (!selectedStudentId) return;
+      const targetPin = selectedStudentPin || (activeSession ? activeSession.pin : currentSessionPin);
       if (confirm('FORCE SUBMIT this student\'s exam right now?')) {
         ws.send(JSON.stringify({
           type: 'ADMIN_ACTION',
-          sessionPin: activeSession.pin,
+          sessionPin: targetPin,
           studentId: selectedStudentId,
           action: 'FORCE_SUBMIT'
         }));
@@ -942,28 +1468,265 @@
     }
 
     function handleAdminDisqualify() {
-      if (!selectedStudentId || !activeSession) return;
+      if (!selectedStudentId) return;
+      const targetPin = selectedStudentPin || (activeSession ? activeSession.pin : currentSessionPin);
       if (confirm('Permanently DISQUALIFY this student from the exam? This cannot be undone.')) {
         ws.send(JSON.stringify({
           type: 'ADMIN_ACTION',
-          sessionPin: activeSession.pin,
+          sessionPin: targetPin,
           studentId: selectedStudentId,
           action: 'DISQUALIFY'
         }));
       }
     }
 
+    // ==============================================================
+    // TAB 2: FACULTY & TEACHERS MANAGEMENT
+    // ==============================================================
+    async function loadTeachers() {
+      try {
+        const res = await fetch('/api/teachers');
+        const data = await res.json();
+        teachersList = data.teachers || [];
+        document.getElementById('statTotalTeachers').textContent = teachersList.length;
+        document.getElementById('statActiveTeachers').textContent = teachersList.filter(t => t.status === 'ACTIVE').length;
+        document.getElementById('badgeFacultyCount').textContent = teachersList.length;
+        renderTeachersList();
+      } catch (err) {
+        console.error('Failed to load teachers:', err);
+      }
+    }
+
+    function renderTeachersList() {
+      const grid = document.getElementById('teachersGrid');
+      const empty = document.getElementById('teachersEmptyState');
+      const query = (document.getElementById('searchTeacherInput')?.value || '').toLowerCase().trim();
+
+      let list = [...teachersList];
+      if (query) {
+        list = list.filter(t =>
+          (t.name || '').toLowerCase().includes(query) ||
+          (t.department || '').toLowerCase().includes(query) ||
+          (t.course || '').toLowerCase().includes(query) ||
+          (t.facultyId || '').toLowerCase().includes(query) ||
+          (t.email || '').toLowerCase().includes(query)
+        );
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      grid.innerHTML = list.map(t => {
+        const initials = (t.name || 'FC').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-violet-500/50 transition-all flex flex-col justify-between space-y-4">
+            
+            <div class="flex items-start justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30 flex items-center justify-center font-bold text-sm">
+                  ${initials}
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white">${t.name}</h4>
+                  <p class="text-[11px] text-slate-400 font-mono">${t.facultyId || 'SIT-FAC-100'} • ${t.email || ''}</p>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}">
+                ${t.status || 'ACTIVE'}
+              </span>
+            </div>
+
+            <!-- Department & Quarter Course -->
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500">Department:</span>
+                <span class="text-slate-300 font-medium">${t.department || 'Academic Dept'}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500">Assigned Course:</span>
+                <span class="text-violet-300 font-bold font-mono">${t.course || 'Calculus I'} (${t.courseCode || 'MATH-101'})</span>
+              </div>
+            </div>
+
+            <!-- Credentials Card -->
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1 text-xs font-mono">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-sans">Username:</span>
+                <span class="text-slate-300">${t.username || t.email}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-sans">Faculty PIN:</span>
+                <span class="text-purple-400 font-bold tracking-widest">${t.pin || '112233'}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-2 pt-2 border-t border-slate-800">
+              <button onclick="toggleTeacherStatus('${t.id}', '${t.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'}')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors">
+                ${t.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+              </button>
+              <button onclick="deleteTeacher('${t.id}', '${t.name}')" class="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/40 rounded-lg text-xs font-semibold transition-colors" title="Delete Teacher">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openAddTeacherModal() {
+      document.getElementById('newTeacherFacultyId').value = `SIT-FAC-${Math.floor(100 + Math.random() * 900)}`;
+      document.getElementById('newTeacherPin').value = Math.floor(100000 + Math.random() * 900000).toString();
+      document.getElementById('addTeacherError').classList.add('hidden');
+      document.getElementById('addTeacherModal').classList.remove('hidden');
+    }
+
+    function closeAddTeacherModal() {
+      document.getElementById('addTeacherModal').classList.add('hidden');
+    }
+
+    async function handleCreateTeacher(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('addTeacherError');
+      errBox.classList.add('hidden');
+
+      const name = document.getElementById('newTeacherName').value.trim();
+      const dept = document.getElementById('newTeacherDept').value.trim();
+      const courseVal = document.getElementById('newTeacherCourse').value.split('|');
+      const course = courseVal[0];
+      const courseCode = courseVal[1];
+      const email = document.getElementById('newTeacherEmail').value.trim();
+      const facultyId = document.getElementById('newTeacherFacultyId').value.trim();
+      const pin = document.getElementById('newTeacherPin').value.trim();
+      const password = document.getElementById('newTeacherPassword').value.trim() || 'sit@faculty2024';
+
+      try {
+        const res = await fetch('/api/teachers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            department: dept,
+            course,
+            courseCode,
+            email,
+            facultyId,
+            pin,
+            password
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          closeAddTeacherModal();
+          showNotificationToast('Faculty Registered', `Teacher ${name} added successfully with PIN ${pin}.`, 'warning');
+          await loadTeachers();
+        } else {
+          errBox.textContent = data.error || 'Failed to register teacher.';
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errBox.textContent = 'Server error: ' + err.message;
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    async function toggleTeacherStatus(id, newStatus) {
+      try {
+        const res = await fetch(`/api/teachers/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadTeachers();
+        }
+      } catch (err) {
+        alert('Could not update status: ' + err.message);
+      }
+    }
+
+    async function deleteTeacher(id, name) {
+      if (!confirm(`Are you sure you want to remove teacher "${name}" from the institutional registry?`)) return;
+      try {
+        const res = await fetch(`/api/teachers/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          showNotificationToast('Teacher Removed', `${name} has been removed.`, 'warning');
+          loadTeachers();
+        }
+      } catch (err) {
+        alert('Could not delete teacher: ' + err.message);
+      }
+    }
+
+    // ==============================================================
+    // TAB 3: STUDENT EXAM SUBMISSIONS & ANSWERS TABLE
+    // ==============================================================
+    function renderStudentRecordsTable() {
+      const tbody = document.getElementById('studentRecordsTableBody');
+      const list = Object.values(studentsMap);
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-500">No student exam records found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(s => {
+        const isSuspended = s.status === 'SUSPENDED' || s.isSuspended;
+        let badge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">NORMAL</span>';
+        if (isSuspended) badge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">SUSPENDED</span>';
+        else if (s.violationsCount > 0) badge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-black">${s.violationsCount}/3 WARN</span>`;
+        else if (s.status === 'SUBMITTED') badge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-600 text-white">SUBMITTED</span>';
+
+        return `
+          <tr class="hover:bg-slate-900/60 transition-colors">
+            <td class="p-4">
+              <div class="font-bold text-white">${s.studentName}</div>
+              <div class="text-[10px] font-mono text-slate-400">${s.studentId} • Seat: ${s.seatNumber || 'N/A'}</div>
+            </td>
+            <td class="p-4">
+              <div class="font-medium text-slate-200">${s.examTitle || s.subject || 'Quarter Examination'}</div>
+              <div class="text-[10px] text-blue-400 font-mono">${s.courseCode || 'SIT-101'} • ${s.durationMinutes || 90} mins</div>
+            </td>
+            <td class="p-4 font-mono font-bold text-red-400">
+              PIN ${s.sessionPin || '---'}
+            </td>
+            <td class="p-4">${badge}</td>
+            <td class="p-4 font-mono font-bold text-slate-300">
+              ${s.answeredCount || 0} Questions
+            </td>
+            <td class="p-4 font-mono ${s.violationsCount > 0 ? 'text-red-400 font-bold' : 'text-slate-400'}">
+              ${s.violationsCount || 0} Breaches
+            </td>
+            <td class="p-4">
+              <button onclick="openAdminDrawer('${s.studentId}', '${s.sessionPin}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center space-x-1">
+                <i class="fa-solid fa-file-lines text-[10px]"></i>
+                <span>Inspect Answers</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Controls
     function toggleAudioAlerts() {
       audioAlertsEnabled = !audioAlertsEnabled;
       const icon = document.getElementById('audioIcon');
       const label = document.getElementById('audioLabel');
       if (audioAlertsEnabled) {
         icon.className = 'fa-solid fa-volume-high text-indigo-400';
-        label.textContent = 'Sound Alerts ON';
+        label.textContent = 'Alerts ON';
         playBeep(600, 'sine', 0.1);
       } else {
         icon.className = 'fa-solid fa-volume-xmark text-slate-500';
-        label.textContent = 'Sound Alerts OFF';
+        label.textContent = 'Alerts OFF';
       }
     }
 
@@ -972,9 +1735,8 @@
       navigator.clipboard.writeText(pin);
       alert('Copied Session PIN: ' + pin);
     }
-    // ==============================================================
-    // 🔐 SIT ADMINISTRATOR COMMAND AUTHENTICATION
-    // ==============================================================
+
+    // Admin Auth
     function switchAdminAuthMethod(method) {
       document.getElementById('tabAdminAuthPinBtn').className = method === 'pin' ? 'flex-1 py-1.5 text-xs font-semibold rounded-lg bg-red-600 text-white shadow-sm' : 'flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white';
       document.getElementById('tabAdminAuthCredsBtn').className = method === 'creds' ? 'flex-1 py-1.5 text-xs font-semibold rounded-lg bg-red-600 text-white shadow-sm' : 'flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-white';
