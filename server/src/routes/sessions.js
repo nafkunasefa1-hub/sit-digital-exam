@@ -16,15 +16,47 @@ router.get('/:pin', (req, res) => {
 
 // POST create new In-Hall session
 router.post('/create', (req, res) => {
-  const { examId, roomName, durationMinutes, allowedSubnet } = req.body;
+  const { examId, roomName, durationMinutes, subject, courseCode, instructorName, scheduledStartTime, instructions, maxViolations, autoSuspend } = req.body;
   if (!examId) return res.status(400).json({ success: false, error: 'examId is required' });
 
   try {
-    const session = store.createSession(examId, roomName, durationMinutes, allowedSubnet);
+    const session = store.createSession(examId, roomName, durationMinutes, {
+      subject,
+      courseCode,
+      instructorName,
+      scheduledStartTime,
+      instructions,
+      maxViolations,
+      autoSuspend
+    });
     res.json({ success: true, session });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
+});
+
+// POST start scheduled session immediately
+router.post('/:pin/start-now', (req, res) => {
+  const session = store.forceStartSession(req.params.pin);
+  if (!session) return res.status(404).json({ success: false, error: 'Session not found' });
+
+  // Broadcast to all connected clients that the exam has unlocked!
+  for (const [ws, info] of store.activeSockets) {
+    if (info.sessionPin === req.params.pin && ws.readyState === 1) {
+      ws.send(JSON.stringify({
+        type: 'EXAM_UNLOCKED',
+        sessionInfo: {
+          pin: session.pin,
+          status: 'ACTIVE',
+          startTime: session.startTime,
+          durationMinutes: session.durationMinutes,
+          scheduledStartTime: null
+        }
+      }));
+    }
+  }
+
+  res.json({ success: true, session });
 });
 
 // POST update session status (PAUSE, RESUME, END)

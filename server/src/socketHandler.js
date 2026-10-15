@@ -134,6 +134,12 @@ function setupWebSocket(wss) {
           };
         }
 
+        const isScheduled = Boolean(
+          session &&
+          session.scheduledStartTime &&
+          new Date(session.scheduledStartTime).getTime() > Date.now()
+        );
+
         ws.send(
           JSON.stringify({
             type: 'STUDENT_INIT_SUCCESS',
@@ -142,8 +148,15 @@ function setupWebSocket(wss) {
               ? {
                   pin: session.pin,
                   roomName: session.roomName,
+                  subject: session.subject || exam?.subject || 'Calculus I',
+                  courseCode: session.courseCode || exam?.courseCode || 'MATH-101',
+                  instructorName: session.instructorName || exam?.instructorName || 'Faculty Instructor',
                   durationMinutes: session.durationMinutes,
-                  status: session.status,
+                  scheduledStartTime: session.scheduledStartTime || null,
+                  instructions: session.instructions || exam?.instructions || 'Standard academic exam guidelines apply.',
+                  status: isScheduled ? 'SCHEDULED' : session.status,
+                  isScheduled,
+                  startTime: session.startTime,
                   maxViolations: session.maxViolations || 3,
                 }
               : null,

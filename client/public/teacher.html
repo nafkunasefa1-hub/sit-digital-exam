@@ -115,8 +115,8 @@
           <span>Exam Builder</span>
         </button>
         <button onclick="switchTab('ai')" id="tabBtnAi" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5">
-          <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
-          <span>🤖 AI Question Generator</span>
+          <i class="fa-solid fa-file-invoice text-amber-400"></i>
+          <span>📄 Document Question Extractor</span>
         </button>
         <button onclick="switchTab('sessions')" id="tabBtnSessions" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all flex items-center space-x-1.5">
           <i class="fa-solid fa-door-open"></i>
@@ -146,6 +146,32 @@
     <!-- ============================================================== -->
     <div id="tabContentExams" class="space-y-6">
       
+      <!-- Quarter Course Quick Selector Bar -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400"><i class="fa-solid fa-book-bookmark text-violet-400 mr-1.5"></i>Quarter Courses:</span>
+          <span class="text-[10px] text-slate-500 font-mono">(Click to switch subject exam)</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="loadExamByCourse('Calculus I')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-600 hover:text-white transition-all flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            <span>Calculus I</span>
+          </button>
+          <button type="button" onclick="loadExamByCourse('Chemistry I')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white transition-all flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>Chemistry I</span>
+          </button>
+          <button type="button" onclick="loadExamByCourse('English I')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600 hover:text-white transition-all flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+            <span>English I</span>
+          </button>
+          <button type="button" onclick="loadExamByCourse('Physics I')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-600 hover:text-white transition-all flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span>Physics I</span>
+          </button>
+        </div>
+      </div>
+
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6 mb-6">
           <div class="flex items-center space-x-3">
@@ -154,7 +180,7 @@
             </div>
             <div>
               <h2 class="text-xl font-extrabold text-white">Exam Authoring & Question Bank</h2>
-              <p class="text-xs text-slate-400">Create Multiple Choice, Multi-Select, True/False, Short Answer, Coding, or Essay questions.</p>
+              <p class="text-xs text-slate-400">Configure subject, scheduled start time, guidelines, and author rich questions with LaTeX math.</p>
             </div>
           </div>
           <button onclick="openQuestionModal()" class="px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center space-x-2">
@@ -165,21 +191,46 @@
 
         <form id="examAuthorForm" onsubmit="saveExamConfiguration(event)" class="space-y-6">
           
-          <!-- Basic Details -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Subject & Basic Details -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Quarter Course / Subject</label>
+              <select id="exSubject" onchange="handleCourseSelectChange()" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-bold">
+                <option value="Calculus I" data-code="MATH-101">Calculus I (MATH-101)</option>
+                <option value="Chemistry I" data-code="CHEM-101">Chemistry I (CHEM-101)</option>
+                <option value="English I" data-code="ENG-101">English I (ENG-101)</option>
+                <option value="Physics I" data-code="PHYS-101">Physics I (PHYS-101)</option>
+                <option value="Other" data-code="SIT-101">Other / Custom Course</option>
+              </select>
+            </div>
             <div class="md:col-span-2">
               <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Exam Title</label>
-              <input type="text" id="exTitle" required placeholder="e.g. CS-301 Computer Architecture Final Exam" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500">
+              <input type="text" id="exTitle" required placeholder="e.g. Calculus I - Midterm Examination" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 font-medium">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Course Code</label>
-              <input type="text" id="exCode" required placeholder="e.g. CS-301" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500">
+              <input type="text" id="exCode" required value="MATH-101" placeholder="e.g. MATH-101" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
+            </div>
+          </div>
+
+          <!-- Instructor & Scheduled Start Time -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Faculty Instructor Name</label>
+              <input type="text" id="exInstructor" placeholder="e.g. Dr. Tsegaye Alemu / Faculty of Engineering" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-purple-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span><i class="fa-regular fa-clock mr-1 text-purple-400"></i>Scheduled Exam Start Time</span>
+                <span class="text-[10px] text-slate-400 font-normal">Leave blank to allow starting immediately</span>
+              </label>
+              <input type="datetime-local" id="exScheduledTime" class="w-full px-4 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-xs text-white focus:outline-none focus:border-purple-400 font-mono">
             </div>
           </div>
 
           <!-- Proctoring Rules Section -->
           <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-5 space-y-4">
-            <span class="text-xs font-bold text-violet-400 uppercase tracking-wider block">Institutional Security Rules (SIT Standard)</span>
+            <span class="text-xs font-bold text-violet-400 uppercase tracking-wider block">Institutional Assessment & Timing Rules</span>
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
@@ -201,7 +252,7 @@
 
             <div class="flex flex-wrap items-center gap-6 pt-2 border-t border-slate-800/80 text-xs">
               <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" id="exRandomize" checked class="w-4 h-4 rounded bg-slate-900 border-slate-800 text-violet-600 focus:ring-0">
+                <input type="checkbox" id="exRandomize" class="w-4 h-4 rounded bg-slate-900 border-slate-800 text-violet-600 focus:ring-0">
                 <span class="text-slate-300">Shuffle questions and choices per student</span>
               </label>
 
@@ -214,8 +265,8 @@
 
           <!-- Instructions -->
           <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">SIT Student Instructions & Hall Policy</label>
-            <textarea id="exDescription" rows="2" placeholder="e.g. No outside materials allowed. Exiting fullscreen will flag your exam." class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500"></textarea>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Exam Instructions & Hall Guidelines (Shown to Students)</label>
+            <textarea id="exDescription" rows="2" placeholder="e.g. Scientific calculators permitted for Calculus and Physics. Scratch paper provided. Kiosk lockdown is strictly monitored." class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 leading-relaxed"></textarea>
           </div>
 
           <!-- Questions Bank View -->
@@ -261,9 +312,16 @@
           <div>
             <span class="text-xs font-medium text-slate-400 uppercase tracking-wider block">Current Active Hall PIN:</span>
             <div class="text-4xl font-extrabold text-violet-400 font-mono tracking-widest mt-1" id="activePinDisplay">------</div>
-            <p class="text-[11px] text-slate-500 mt-1" id="activeSessionInfo">No session loaded</p>
+            <p class="text-[11px] text-slate-400 mt-1" id="activeSessionInfo">No session loaded</p>
+            <div id="sessionScheduledBadge" class="mt-2 hidden">
+              <span class="px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-mono font-semibold" id="sessionScheduledTimeDisplay">Starts: --</span>
+            </div>
           </div>
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2 w-full sm:w-auto">
+            <button id="btnStartNowSession" onclick="handleStartSessionNow()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center justify-center space-x-1.5 shadow-md transition-all">
+              <i class="fa-solid fa-play"></i>
+              <span>Start / Unlock Exam Now</span>
+            </button>
             <button onclick="copySessionPin()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg flex items-center justify-center space-x-1.5">
               <i class="fa-regular fa-copy"></i>
               <span>Copy PIN</span>
@@ -279,6 +337,16 @@
           <h3 class="text-sm font-bold text-white">Create New In-Hall Session</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Select Course Exam</label>
+              <select id="newSessionSubject" onchange="handleNewSessionCourseChange()" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-violet-500 font-semibold">
+                <option value="Calculus I">Calculus I (MATH-101)</option>
+                <option value="Chemistry I">Chemistry I (CHEM-101)</option>
+                <option value="English I">English I (ENG-101)</option>
+                <option value="Physics I">Physics I (PHYS-101)</option>
+                <option value="Other">Other / Current Active Exam</option>
+              </select>
+            </div>
+            <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Room / Hall Name</label>
               <input type="text" id="newRoomName" required value="SIT Main Hall - Section A" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500">
             </div>
@@ -286,9 +354,19 @@
               <label class="block text-xs font-medium text-slate-400 mb-1">Duration (Minutes)</label>
               <input type="number" id="newRoomDuration" required value="90" min="10" max="300" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium text-slate-400 mb-1">Allowed Subnet IP (Optional)</label>
-              <input type="text" id="newRoomSubnet" placeholder="e.g. 192.168.30." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-violet-500 font-mono">
+              <label class="block text-xs font-medium text-purple-300 mb-1">
+                <i class="fa-regular fa-clock mr-1"></i>Scheduled Exam Start Time (Optional)
+              </label>
+              <input type="datetime-local" id="newSessionScheduledTime" class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-lg text-xs text-white focus:outline-none focus:border-purple-400 font-mono">
+              <span class="text-[10px] text-slate-500">Leave blank to allow students to begin immediately upon PIN entry.</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Faculty Instructor Name</label>
+              <input type="text" id="newSessionInstructor" placeholder="e.g. Dr. Tsegaye Alemu" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-violet-500">
             </div>
           </div>
 
@@ -343,101 +421,123 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- TAB 4: 🤖 AI QUESTION GENERATOR & DOCUMENT EXTRACTOR          -->
+    <!-- TAB 4: 📄 EXAM DOCUMENT QUESTION EXTRACTOR & PUBLISHER         -->
     <!-- ============================================================== -->
     <div id="tabContentAi" class="hidden space-y-6">
       
       <!-- Intro Banner -->
-      <div class="bg-gradient-to-r from-purple-900/40 via-violet-900/30 to-indigo-950/40 border border-purple-500/30 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-950/60 via-indigo-950/50 to-violet-950/60 border border-blue-500/30 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-semibold mb-3">
-              <i class="fa-solid fa-wand-magic-sparkles"></i>
-              <span>SIT Academic AI Core</span>
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold mb-3">
+              <i class="fa-solid fa-file-invoice"></i>
+              <span>Faithful Exam Question Extractor</span>
             </div>
-            <h2 class="text-2xl font-black text-white">AI Question Generator & Document Extractor</h2>
-            <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-              Upload past exams, lecture slides, syllabus, or textbooks (<span class="text-purple-300 font-mono">.pdf, .docx, .doc, .txt</span>), or paste notes. The SIT Academic AI extracts structured questions (Multiple Choice, True/False, Short Answer, Essay) and loads them directly into your exam!
+            <h2 class="text-2xl font-black text-white">Exam Document Question Extractor</h2>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Upload an exam paper you already prepared in <span class="text-blue-300 font-mono">.pdf, .docx, .doc, or .txt</span>. The extractor parses every question <strong>exactly as you wrote it</strong>, preserves mathematical equations, formulas ($f(x)$, $\int$, $\frac{d}{dx}$, $\sqrt{x}$, Greek symbols), variables, and chemical formulas, and lets you review, edit, and publish the exam directly.
             </p>
           </div>
-          <div class="flex items-center space-x-2 bg-slate-900/80 border border-purple-500/30 rounded-xl px-4 py-2 text-xs text-purple-200">
-            <i class="fa-solid fa-microchip text-purple-400"></i>
-            <span>Local & Gemini Ready</span>
+          <div class="flex items-center space-x-2 bg-slate-900/90 border border-blue-500/30 rounded-xl px-4 py-2 text-xs text-blue-200">
+            <i class="fa-solid fa-square-root-variable text-blue-400"></i>
+            <span>Math & Formula Preserving</span>
           </div>
         </div>
       </div>
 
+      <!-- Course & Exam Assignment Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-2">
+          <i class="fa-solid fa-graduation-cap text-violet-400"></i>
+          <span>1. Select Course & Exam Details</span>
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Quarter Course</label>
+            <select id="aiDocSubject" onchange="handleAiDocCourseChange()" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-bold">
+              <option value="Calculus I" data-code="MATH-101">Calculus I (MATH-101)</option>
+              <option value="Chemistry I" data-code="CHEM-101">Chemistry I (CHEM-101)</option>
+              <option value="English I" data-code="ENG-101">English I (ENG-101)</option>
+              <option value="Physics I" data-code="PHYS-101">Physics I (PHYS-101)</option>
+              <option value="Other" data-code="SIT-101">Other / Custom Course</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Exam Title</label>
+            <input type="text" id="aiDocExamTitle" value="Calculus I - Midterm Examination" placeholder="e.g. Calculus I - Midterm Examination" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-medium">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Duration (Minutes)</label>
+            <input type="number" id="aiDocDuration" value="90" min="15" max="360" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div>
+            <label class="block text-xs font-semibold text-purple-300 uppercase tracking-wider mb-1 flex items-center justify-between">
+              <span><i class="fa-regular fa-clock mr-1 text-purple-400"></i>Scheduled Exam Start Time</span>
+              <span class="text-[10px] text-slate-400 font-normal">Leave blank to start immediately</span>
+            </label>
+            <input type="datetime-local" id="aiDocScheduledTime" class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-xs text-white focus:outline-none focus:border-purple-400 font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Faculty Instructor Name</label>
+            <input type="text" id="aiDocInstructor" placeholder="e.g. Dr. Tsegaye Alemu" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Upload & Text Extraction Card -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Left: Upload & Input Panel (7 Cols) -->
-        <div class="lg:col-span-7 space-y-6">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
-              <i class="fa-solid fa-file-arrow-up text-violet-400"></i>
-              <span>1. Upload Document or Paste Content</span>
+        <!-- Left: Upload & Document Text (8 Cols) -->
+        <div class="lg:col-span-8 space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-2">
+              <i class="fa-solid fa-cloud-arrow-up text-violet-400"></i>
+              <span>2. Upload Prepared Exam File (.pdf, .docx, .doc, .txt)</span>
             </h3>
 
-            <!-- Drag & Drop / File Input Box -->
+            <!-- Drop Zone -->
             <div id="dropZone" onclick="document.getElementById('aiDocFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-violet-500/80 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-950/50 hover:bg-violet-950/10 group">
               <input type="file" id="aiDocFileInput" accept=".pdf,.docx,.doc,.txt" class="hidden" onchange="handleAiFileUpload(event)">
               <div class="w-14 h-14 mx-auto rounded-2xl bg-violet-600/10 text-violet-400 border border-violet-500/20 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white transition-all">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <i class="fa-solid fa-file-arrow-up"></i>
               </div>
-              <div class="text-sm font-semibold text-white group-hover:text-violet-300">Choose a file or click to browse</div>
+              <div class="text-sm font-semibold text-white group-hover:text-violet-300">Click to browse or drop your prepared exam file here</div>
               <p class="text-xs text-slate-400 mt-1">Supports PDF (.pdf), Word (.docx, .doc), and Text (.txt)</p>
               <div id="uploadFileStatus" class="mt-3 text-xs font-mono text-emerald-400 hidden"></div>
             </div>
 
-            <!-- Extracted / Manual Text Content -->
+            <!-- Text Preview & Edit Area -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Document / Lecture Content</label>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Exam Document Content</label>
                 <span class="text-[11px] text-slate-500 font-mono" id="docTextWordCount">0 characters</span>
               </div>
-              <textarea id="aiSourceText" rows="9" oninput="updateWordCount()" placeholder="Extracted text from your document will appear here, or you can paste your lecture notes, textbook excerpts, or past questions directly..." class="w-full p-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 leading-relaxed font-mono"></textarea>
+              <textarea id="aiSourceText" rows="8" oninput="updateWordCount()" placeholder="Your uploaded exam questions will appear here. You can also paste your questions directly with numbers (1. Question... A) Choice 1 B) Choice 2... Answer: A)..." class="w-full p-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 leading-relaxed font-mono"></textarea>
             </div>
           </div>
         </div>
 
-        <!-- Right: AI Settings & Trigger (5 Cols) -->
-        <div class="lg:col-span-5 space-y-6">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
-              <i class="fa-solid fa-sliders text-violet-400"></i>
-              <span>2. AI Generation Settings</span>
+        <!-- Right: Action & Engine Options (4 Cols) -->
+        <div class="lg:col-span-4 space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-2">
+              <i class="fa-solid fa-bolt text-violet-400"></i>
+              <span>3. Extraction Engine</span>
             </h3>
-
-            <!-- Number of questions -->
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Number of Questions</label>
-              <select id="aiQuestionCount" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-semibold">
-                <option value="3">3 Questions</option>
-                <option value="5" selected>5 Questions (Recommended)</option>
-                <option value="8">8 Questions</option>
-                <option value="10">10 Questions</option>
-                <option value="15">15 Questions</option>
-                <option value="20">20 Questions</option>
-              </select>
-            </div>
-
-            <!-- Preferred Question Format -->
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Target Question Format</label>
-              <select id="aiQuestionType" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-semibold">
-                <option value="ALL" selected>Comprehensive Mix (MCQ, True/False, Short Answer, Essay)</option>
-                <option value="MCQ">Multiple Choice (MCQ) Only</option>
-                <option value="TRUE_FALSE">True / False Statements Only</option>
-                <option value="SHORT_ANSWER">Short Answer / Definitions Only</option>
-                <option value="ESSAY">Essay / Analytical Problems Only</option>
-              </select>
-            </div>
 
             <!-- Engine Selection -->
             <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Intelligence Engine</label>
-              <select id="aiEngineSelect" onchange="toggleAiApiKeyField()" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-semibold">
-                <option value="builtin" selected>⚡ SIT Built-in Intelligent Parser (Instant & Zero-Config)</option>
-                <option value="gemini">✨ Google Gemini 1.5 Flash (API Key)</option>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Parser Mode</label>
+              <select id="aiEngineSelect" onchange="toggleAiApiKeyField()" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-semibold">
+                <option value="builtin" selected>⚡ SIT Built-in Math Parser (Instant & Offline)</option>
+                <option value="gemini">✨ Gemini 1.5 Academic Extractor (API Key)</option>
               </select>
             </div>
 
@@ -445,44 +545,106 @@
             <div id="geminiApiKeyGroup" class="hidden space-y-1">
               <label class="block text-xs font-semibold text-purple-400 uppercase tracking-wider">Gemini API Key</label>
               <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full px-3 py-2 bg-slate-950 border border-purple-500/40 rounded-xl text-xs text-white focus:outline-none focus:border-purple-400 font-mono">
-              <p class="text-[10px] text-slate-500">Free keys available at Google AI Studio. Stored in memory only.</p>
+              <p class="text-[10px] text-slate-500">Free keys available at Google AI Studio.</p>
             </div>
 
-            <!-- Generate Button -->
-            <button id="btnAiGenerate" onclick="triggerAiGeneration()" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center space-x-2">
-              <i class="fa-solid fa-wand-magic-sparkles" id="aiBtnIcon"></i>
-              <span id="aiBtnText">Extract & Generate Questions</span>
+            <!-- Extract Button -->
+            <button id="btnAiGenerate" onclick="triggerAiGeneration()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-file-circle-check" id="aiBtnIcon"></i>
+              <span id="aiBtnText">Extract Questions From Document</span>
             </button>
             <div id="aiStatusMessage" class="text-xs text-center font-medium hidden"></div>
+
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
+              <div class="font-bold text-slate-300"><i class="fa-solid fa-check text-emerald-400 mr-1"></i>Math Preserved:</div>
+              <div>Equations formatted with KaTeX ($...$). Greek letters, fractions, roots, and vectors are strictly maintained.</div>
+            </div>
           </div>
         </div>
 
       </div>
 
-      <!-- Generated Questions Preview & Append Area -->
+      <!-- ============================================================ -->
+      <!-- INTERACTIVE QUESTION STAGING, EDITING & DIRECT PUBLISHING     -->
+      <!-- ============================================================ -->
       <div id="aiPreviewContainer" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl hidden space-y-6">
+        
+        <!-- Header & Action Bar -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg">
-              <i class="fa-solid fa-clipboard-check"></i>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-clipboard-list"></i>
             </div>
             <div>
               <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                <span>AI Generated Question Staging Pool</span>
-                <span id="aiGeneratedBadgeCount" class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">0 questions</span>
+                <span>Extracted Questions Review & Editor</span>
+                <span id="aiGeneratedBadgeCount" class="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-mono">0 questions</span>
               </h3>
-              <p class="text-xs text-slate-400">Review and append these questions directly into your active exam.</p>
+              <p class="text-xs text-slate-400">Review every extracted question, edit choices or prompts, and publish your exam.</p>
             </div>
           </div>
 
-          <button onclick="appendAllAiQuestionsToExam()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center space-x-2">
-            <i class="fa-solid fa-file-import"></i>
-            <span>Append All to Exam Question Bank</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="addAiQuestionManually()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all flex items-center space-x-1.5">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Add Question</span>
+            </button>
+            <button onclick="publishExtractedExamDirectly()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center space-x-2">
+              <i class="fa-solid fa-rocket"></i>
+              <span>Save & Publish Exam Directly</span>
+            </button>
+            <button onclick="appendAllAiQuestionsToExam()" class="px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 transition-all flex items-center space-x-1.5" title="Append to Exam Builder bank">
+              <i class="fa-solid fa-folder-plus"></i>
+              <span>Append to Bank</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Questions List Rendered Here -->
-        <div id="aiQuestionsList" class="space-y-4"></div>
+        <!-- Interactive Editable Questions List -->
+        <div id="aiQuestionsList" class="space-y-5">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Bottom Action Bar -->
+        <div class="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <button onclick="addAiQuestionManually()" class="text-xs text-violet-400 hover:text-violet-300 font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Another Question</span>
+          </button>
+
+          <div class="flex items-center space-x-3">
+            <button onclick="appendAllAiQuestionsToExam()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-colors">
+              Append to Exam Builder
+            </button>
+            <button onclick="publishExtractedExamDirectly()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center space-x-2">
+              <i class="fa-solid fa-rocket"></i>
+              <span>Save & Publish Exam Directly</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Publication Success Modal -->
+      <div id="publishSuccessModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-emerald-500/50 rounded-2xl p-7 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-4">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-3xl">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h3 class="text-xl font-extrabold text-white">Exam Published Successfully!</h3>
+          <p class="text-xs text-slate-300" id="pubSuccessDescription">Your exam has been configured and the In-Hall session is live.</p>
+
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Hall Session PIN</div>
+            <div class="text-3xl font-extrabold font-mono text-emerald-400 tracking-widest select-all" id="pubSuccessPin">------</div>
+            <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800" id="pubSuccessSchedule">Starts: Immediately</div>
+          </div>
+
+          <div class="flex space-x-3 pt-2">
+            <button onclick="closePublishModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl">Close</button>
+            <button onclick="goToLiveSessionFromPublish()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition-all">View In Hall</button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -532,10 +694,36 @@
           </div>
         </div>
 
-        <!-- Question Prompt -->
+        <!-- Question Prompt with Math Support -->
         <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Question Prompt (Supports LaTeX Math e.g. $E = mc^2$)</label>
-          <textarea id="qModalPrompt" rows="3" required placeholder="Type the question text here..." class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500"></textarea>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Question Prompt (Supports LaTeX Math e.g. $E = mc^2$)</label>
+            <span class="text-[10px] text-violet-400 font-mono">Wrap Math in $...$</span>
+          </div>
+
+          <!-- Quick Math & Chemistry Insert Toolbar -->
+          <div class="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-950 border border-slate-800 rounded-t-xl text-[11px]">
+            <span class="text-[10px] text-slate-500 font-mono px-1">Quick Symbols:</span>
+            <button type="button" onclick="insertMathSnippet('$\\frac{a}{b}$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Fraction">$\frac{a}{b}$</button>
+            <button type="button" onclick="insertMathSnippet('$\\int_{a}^{b} f(x)dx$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Integral">$\int$</button>
+            <button type="button" onclick="insertMathSnippet('$\\lim_{x \\to 0}$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Limit">$\lim$</button>
+            <button type="button" onclick="insertMathSnippet('$\\sqrt{x}$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Square Root">$\sqrt{x}$</button>
+            <button type="button" onclick="insertMathSnippet('$\\sum_{i=1}^{n}$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Summation">$\sum$</button>
+            <button type="button" onclick="insertMathSnippet('$\\theta$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Theta">$\theta$</button>
+            <button type="button" onclick="insertMathSnippet('$\\alpha$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Alpha">$\alpha$</button>
+            <button type="button" onclick="insertMathSnippet('$\\pi$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Pi">$\pi$</button>
+            <button type="button" onclick="insertMathSnippet('$\\pm$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Plus-Minus">$\pm$</button>
+            <button type="button" onclick="insertMathSnippet('$\\vec{F}$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Vector">$\vec{F}$</button>
+            <button type="button" onclick="insertMathSnippet('$\\text{H}_2\\text{O}$')" class="px-1.5 py-0.5 bg-slate-900 hover:bg-violet-600 rounded text-slate-300 font-mono text-[10px] border border-slate-800" title="Water Molecule">$\text{H}_2\text{O}$</button>
+          </div>
+
+          <textarea id="qModalPrompt" rows="3" required oninput="updatePromptMathPreview()" placeholder="Type the question text here (use $...$ for LaTeX math/chemistry)..." class="w-full p-3 bg-slate-950 border border-slate-800 rounded-b-xl text-xs text-white focus:outline-none focus:border-violet-500 font-mono"></textarea>
+
+          <!-- Live Math KaTeX Preview -->
+          <div class="mt-2 p-2.5 bg-slate-950/90 border border-slate-800 rounded-xl text-xs text-slate-300">
+            <span class="text-[10px] text-violet-400 uppercase tracking-wider font-mono block mb-1">Live Math Preview:</span>
+            <div id="qPromptPreviewContent" class="text-xs text-white min-h-[20px]">Type math wrapped in $...$ to see rendered formulas.</div>
+          </div>
         </div>
 
         <!-- Options Container (For MCQ and MULTI_SELECT) -->
@@ -597,6 +785,14 @@
     let activeSession = null;
     let questionsList = [];
     let editingQuestionIndex = -1;
+    let allExams = [];
+
+    const COURSE_MAP = {
+      'Calculus I': { code: 'MATH-101', defaultInstructor: 'Dr. Tsegaye Alemu', color: 'blue' },
+      'Chemistry I': { code: 'CHEM-101', defaultInstructor: 'Dr. Abebech Bekele', color: 'emerald' },
+      'English I': { code: 'ENG-101', defaultInstructor: 'Prof. Michael Worku', color: 'purple' },
+      'Physics I': { code: 'PHYS-101', defaultInstructor: 'Dr. Dawit Haile', color: 'amber' }
+    };
 
     async function initData() {
       try {
@@ -604,10 +800,15 @@
         if (teacherName && document.getElementById('facultyNameDisplay')) {
           document.getElementById('facultyNameDisplay').textContent = teacherName;
         }
+        if (teacherName && document.getElementById('exInstructor') && !document.getElementById('exInstructor').value) {
+          document.getElementById('exInstructor').value = teacherName;
+        }
+
         const exRes = await fetch('/api/exams');
         const exData = await exRes.json();
-        if (exData.exams && exData.exams.length > 0) {
-          currentExam = exData.exams[0];
+        allExams = exData.exams || [];
+        if (allExams.length > 0) {
+          currentExam = allExams[0];
           questionsList = currentExam.questions || [];
           populateExamForm();
         }
@@ -615,12 +816,155 @@
         const sessRes = await fetch('/api/sessions');
         const sessData = await sessRes.json();
         if (sessData.sessions && sessData.sessions.length > 0) {
-          activeSession = sessData.sessions[0];
-          document.getElementById('activePinDisplay').textContent = activeSession.pin;
-          document.getElementById('activeSessionInfo').textContent = `${activeSession.roomName || 'Campus Hall'} • Duration: ${activeSession.durationMinutes}m`;
+          updateActiveSessionDisplay(sessData.sessions[0]);
         }
       } catch (err) {
         console.error('Failed to init Teacher portal:', err);
+      }
+    }
+
+    function updateActiveSessionDisplay(session) {
+      activeSession = session;
+      if (!session) {
+        document.getElementById('activePinDisplay').textContent = '------';
+        document.getElementById('activeSessionInfo').textContent = 'No session loaded';
+        document.getElementById('sessionScheduledBadge').classList.add('hidden');
+        document.getElementById('btnStartNowSession').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('activePinDisplay').textContent = session.pin;
+      document.getElementById('activeSessionInfo').textContent = `${session.roomName || 'Campus Main Hall'} • ${session.subject || 'Quarter Course'} • ${session.durationMinutes}m`;
+
+      const isScheduled = Boolean(session.scheduledStartTime && new Date(session.scheduledStartTime).getTime() > Date.now());
+      const badge = document.getElementById('sessionScheduledBadge');
+      const startBtn = document.getElementById('btnStartNowSession');
+
+      if (isScheduled) {
+        badge.classList.remove('hidden');
+        document.getElementById('sessionScheduledTimeDisplay').textContent = `📅 Starts: ${new Date(session.scheduledStartTime).toLocaleString()}`;
+        startBtn.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+        startBtn.classList.add('hidden');
+      }
+    }
+
+    async function handleStartSessionNow() {
+      if (!activeSession) return;
+      if (!confirm(`🚀 Unlock and start session PIN ${activeSession.pin} immediately for all students?`)) return;
+
+      try {
+        const res = await fetch(`/api/sessions/${activeSession.pin}/start-now`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          updateActiveSessionDisplay(data.session);
+          alert(`✅ Session PIN ${activeSession.pin} unlocked! All students held in the waiting room are now transitioning directly into their exam.`);
+        } else {
+          alert('Could not start session: ' + data.error);
+        }
+      } catch (e) {
+        alert('Server communication error: ' + e.message);
+      }
+    }
+
+    function loadExamByCourse(subject) {
+      const info = COURSE_MAP[subject] || { code: 'SIT-101', defaultInstructor: 'Faculty Instructor' };
+      
+      let found = allExams.find(e => 
+        (e.subject && e.subject.toLowerCase() === subject.toLowerCase()) ||
+        (e.courseCode && e.courseCode.toLowerCase() === info.code.toLowerCase()) ||
+        (e.title && e.title.toLowerCase().includes(subject.toLowerCase()))
+      );
+
+      if (found) {
+        currentExam = found;
+        questionsList = currentExam.questions || [];
+      } else {
+        currentExam = {
+          title: `${subject} - Midterm Examination`,
+          courseCode: info.code,
+          subject: subject,
+          durationMinutes: 90,
+          totalMarks: 100,
+          maxViolations: 3,
+          randomizeQuestions: false,
+          autoSuspend: true,
+          instructorName: info.defaultInstructor,
+          questions: []
+        };
+        questionsList = [];
+      }
+
+      populateExamForm();
+
+      // Sync subject dropdowns
+      if (document.getElementById('exSubject')) {
+        document.getElementById('exSubject').value = subject;
+      }
+      if (document.getElementById('aiDocSubject')) {
+        document.getElementById('aiDocSubject').value = subject;
+        handleAiDocCourseChange();
+      }
+      if (document.getElementById('newSessionSubject')) {
+        document.getElementById('newSessionSubject').value = subject;
+        handleNewSessionCourseChange();
+      }
+    }
+
+    function handleCourseSelectChange() {
+      const sel = document.getElementById('exSubject');
+      const subject = sel.value;
+      const opt = sel.options[sel.selectedIndex];
+      const code = opt ? opt.getAttribute('data-code') : (COURSE_MAP[subject]?.code || 'SIT-101');
+      if (document.getElementById('exCode')) document.getElementById('exCode').value = code;
+      loadExamByCourse(subject);
+    }
+
+    function handleAiDocCourseChange() {
+      const sel = document.getElementById('aiDocSubject');
+      const subject = sel.value;
+      if (document.getElementById('aiDocExamTitle')) {
+        document.getElementById('aiDocExamTitle').value = `${subject} - Midterm Examination`;
+      }
+    }
+
+    function handleNewSessionCourseChange() {
+      const sub = document.getElementById('newSessionSubject').value;
+      if (document.getElementById('newRoomName')) {
+        document.getElementById('newRoomName').value = `SIT Main Hall - ${sub}`;
+      }
+      const info = COURSE_MAP[sub];
+      if (info && document.getElementById('newSessionInstructor') && !document.getElementById('newSessionInstructor').value) {
+        document.getElementById('newSessionInstructor').value = info.defaultInstructor;
+      }
+    }
+
+    function insertMathSnippet(snippet) {
+      const textarea = document.getElementById('qModalPrompt');
+      if (!textarea) return;
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const val = textarea.value;
+      textarea.value = val.substring(0, start) + snippet + val.substring(end);
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + snippet.length;
+      updatePromptMathPreview();
+    }
+
+    function updatePromptMathPreview() {
+      const text = document.getElementById('qModalPrompt')?.value || '';
+      const preview = document.getElementById('qPromptPreviewContent');
+      if (!preview) return;
+      preview.textContent = text || 'Type math wrapped in $...$ to see rendered formulas.';
+      if (window.renderMathInElement) {
+        renderMathInElement(preview, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
       }
     }
 
@@ -628,6 +972,15 @@
       if (!currentExam) return;
       document.getElementById('exTitle').value = currentExam.title || '';
       document.getElementById('exCode').value = currentExam.courseCode || '';
+      if (document.getElementById('exSubject') && currentExam.subject) {
+        document.getElementById('exSubject').value = currentExam.subject;
+      }
+      if (document.getElementById('exInstructor') && currentExam.instructorName) {
+        document.getElementById('exInstructor').value = currentExam.instructorName;
+      }
+      if (document.getElementById('exScheduledTime') && currentExam.scheduledStartTime) {
+        document.getElementById('exScheduledTime').value = currentExam.scheduledStartTime;
+      }
       document.getElementById('exDuration').value = currentExam.durationMinutes || 90;
       document.getElementById('exMaxViolations').value = currentExam.maxViolations || 3;
       document.getElementById('exTotalMarks').value = currentExam.totalMarks || 100;
@@ -871,52 +1224,90 @@
     }
 
     async function saveExamConfiguration(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
+      const subject = document.getElementById('exSubject')?.value || 'Calculus I';
+      const info = COURSE_MAP[subject] || { code: 'MATH-101' };
+
       const updated = {
         id: currentExam ? currentExam.id : undefined,
         title: document.getElementById('exTitle').value,
-        courseCode: document.getElementById('exCode').value,
-        durationMinutes: Number(document.getElementById('exDuration').value),
+        courseCode: document.getElementById('exCode').value || info.code,
+        subject: subject,
+        instructorName: document.getElementById('exInstructor')?.value || '',
+        scheduledStartTime: document.getElementById('exScheduledTime')?.value || null,
+        durationMinutes: Number(document.getElementById('exDuration').value) || 90,
         maxViolations: Number(document.getElementById('exMaxViolations').value) || 3,
-        totalMarks: Number(document.getElementById('exTotalMarks').value),
+        totalMarks: Number(document.getElementById('exTotalMarks').value) || 100,
         randomizeQuestions: document.getElementById('exRandomize').checked,
         autoSuspend: document.getElementById('exAutoSuspend').checked,
         description: document.getElementById('exDescription').value,
         questions: questionsList
       };
 
-      const res = await fetch('/api/exams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated)
-      });
-      const data = await res.json();
-      if (data.success) {
-        currentExam = data.exam;
-        alert('SIT Exam saved and question pool updated successfully!');
+      try {
+        const res = await fetch('/api/exams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentExam = data.exam;
+          // Refresh in allExams
+          const existingIdx = allExams.findIndex(x => x.id === currentExam.id);
+          if (existingIdx >= 0) allExams[existingIdx] = currentExam;
+          else allExams.push(currentExam);
+          alert('✅ SIT Exam and Question Bank saved successfully!');
+        }
+      } catch (err) {
+        alert('Failed to save exam: ' + err.message);
       }
     }
 
     async function handleCreateSession(e) {
       e.preventDefault();
-      if (!currentExam) return alert('Please save or select an exam first.');
+      const subject = document.getElementById('newSessionSubject').value;
+      const info = COURSE_MAP[subject] || { code: 'MATH-101' };
 
-      const res = await fetch('/api/sessions/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          examId: currentExam.id,
-          roomName: document.getElementById('newRoomName').value,
-          durationMinutes: Number(document.getElementById('newRoomDuration').value),
-          allowedSubnet: document.getElementById('newRoomSubnet').value.trim()
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        activeSession = data.session;
-        document.getElementById('activePinDisplay').textContent = activeSession.pin;
-        document.getElementById('activeSessionInfo').textContent = `${activeSession.roomName} • PIN: ${activeSession.pin}`;
-        alert(`New SIT In-Hall Session Activated!\nPIN: ${activeSession.pin}\nStudents can now sign in with this PIN.`);
+      // Ensure we have an examId for this subject
+      let examId = currentExam?.id;
+      if (!examId || (currentExam.subject && currentExam.subject !== subject)) {
+        const matchingExam = allExams.find(x => x.subject === subject || x.courseCode === info.code);
+        if (matchingExam) examId = matchingExam.id;
+      }
+
+      if (!examId) {
+        return alert('Please save or configure the exam for ' + subject + ' before launching a session.');
+      }
+
+      const scheduledStartTime = document.getElementById('newSessionScheduledTime').value || null;
+      const instructorName = document.getElementById('newSessionInstructor').value.trim() || info.defaultInstructor;
+      const durationMinutes = Number(document.getElementById('newRoomDuration').value) || 90;
+      const roomName = document.getElementById('newRoomName').value.trim() || `SIT Main Hall - ${subject}`;
+
+      try {
+        const res = await fetch('/api/sessions/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            examId,
+            roomName,
+            durationMinutes,
+            subject,
+            courseCode: info.code,
+            instructorName,
+            scheduledStartTime
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          updateActiveSessionDisplay(data.session);
+          alert(`🎉 New In-Hall Session Created!\nCourse: ${subject} (${info.code})\nPIN: ${data.session.pin}\n${scheduledStartTime ? `Scheduled Start: ${new Date(scheduledStartTime).toLocaleString()}` : 'Starts: Immediately'}`);
+        } else {
+          alert('Failed to create session: ' + data.error);
+        }
+      } catch (err) {
+        alert('Network error: ' + err.message);
       }
     }
 
@@ -941,7 +1332,7 @@
     }
 
     // ==============================================================
-    // 🤖 AI QUESTION GENERATOR & DOCUMENT EXTRACTOR SCRIPT
+    // 📄 FAITHFUL EXAM DOCUMENT QUESTION EXTRACTOR & INLINE EDITOR
     // ==============================================================
     let aiStagedQuestions = [];
 
@@ -994,14 +1385,14 @@
         if (extractedText && extractedText.trim().length > 0) {
           document.getElementById('aiSourceText').value = extractedText.trim();
           updateWordCount();
-          statusEl.textContent = `✅ Successfully extracted ${extractedText.trim().split(/\s+/).length} words from ${file.name}`;
+          statusEl.textContent = `✅ Successfully extracted text from ${file.name} (${extractedText.trim().split(/\s+/).length} words)`;
           statusEl.className = 'mt-3 text-xs font-mono text-emerald-400';
         } else {
           throw new Error('No readable text found in document.');
         }
       } catch (err) {
         console.error('Document parsing error:', err);
-        statusEl.textContent = `⚠️ Could not parse file: ${err.message}. You can paste text manually.`;
+        statusEl.textContent = `⚠️ Could not parse file: ${err.message}. You can paste exam questions directly below.`;
         statusEl.className = 'mt-3 text-xs font-mono text-amber-400';
       }
     }
@@ -1009,14 +1400,13 @@
     async function triggerAiGeneration() {
       const text = document.getElementById('aiSourceText').value.trim();
       if (!text || text.length < 15) {
-        alert('Please upload a document (.pdf, .docx, .txt) or paste lecture text (at least 15 characters) to generate questions.');
+        alert('Please upload your exam paper (.pdf, .docx, .txt) or paste your exam questions into the document area.');
         return;
       }
 
-      const count = document.getElementById('aiQuestionCount').value;
-      const type = document.getElementById('aiQuestionType').value;
       const engine = document.getElementById('aiEngineSelect').value;
       const apiKey = engine === 'gemini' ? document.getElementById('geminiApiKeyInput').value.trim() : '';
+      const subject = document.getElementById('aiDocSubject').value;
 
       const btn = document.getElementById('btnAiGenerate');
       const icon = document.getElementById('aiBtnIcon');
@@ -1025,21 +1415,21 @@
 
       btn.disabled = true;
       icon.className = 'fa-solid fa-spinner fa-spin';
-      textSpan.textContent = 'Analyzing Materials & Generating Questions...';
+      textSpan.textContent = 'Faithfully Extracting Questions & Formulas...';
       statusMsg.classList.remove('hidden');
-      statusMsg.className = 'text-xs text-center font-medium text-purple-300 animate-pulse';
-      statusMsg.textContent = 'Scanning text concepts, formulating distractors, and establishing rubrics...';
+      statusMsg.className = 'text-xs text-center font-medium text-blue-300 animate-pulse';
+      statusMsg.textContent = 'Parsing question prompts, formulas ($...$), choices, and correct answers...';
 
       try {
         const res = await fetch('/api/exams/ai-generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, count, type, apiKey })
+          body: JSON.stringify({ text, subject, apiKey })
         });
 
         const data = await res.json();
         if (!data.success) {
-          throw new Error(data.error || 'Failed to generate questions');
+          throw new Error(data.error || 'Failed to extract questions');
         }
 
         aiStagedQuestions = data.questions || [];
@@ -1048,65 +1438,247 @@
         document.getElementById('aiPreviewContainer').classList.remove('hidden');
         document.getElementById('aiGeneratedBadgeCount').textContent = `${aiStagedQuestions.length} Questions Ready`;
         statusMsg.className = 'text-xs text-center font-medium text-emerald-400';
-        statusMsg.textContent = `✅ Successfully created ${aiStagedQuestions.length} questions via ${data.source || 'SIT AI'}!`;
+        statusMsg.textContent = `✅ Successfully extracted ${aiStagedQuestions.length} questions preserving mathematical formulas!`;
 
-        // Smooth scroll to preview
         document.getElementById('aiPreviewContainer').scrollIntoView({ behavior: 'smooth' });
       } catch (err) {
-        alert('AI Question Generation Notice: ' + err.message);
+        alert('Extraction Notice: ' + err.message);
         statusMsg.className = 'text-xs text-center font-medium text-red-400';
-        statusMsg.textContent = '❌ Generation failed: ' + err.message;
+        statusMsg.textContent = '❌ Extraction failed: ' + err.message;
       } finally {
         btn.disabled = false;
-        icon.className = 'fa-solid fa-wand-magic-sparkles';
-        textSpan.textContent = 'Extract & Generate Questions';
+        icon.className = 'fa-solid fa-file-circle-check';
+        textSpan.textContent = 'Extract Questions From Document';
       }
     }
 
+    // ==============================================================
+    // INTERACTIVE INLINE REVIEW & QUESTION EDITOR
+    // ==============================================================
     function renderAiStagedQuestions() {
       const container = document.getElementById('aiQuestionsList');
       if (aiStagedQuestions.length === 0) {
-        container.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No questions generated yet.</p>';
+        container.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No questions in staging pool. Upload an exam document or click "+ Add Question" to begin.</p>';
         return;
       }
 
-      container.innerHTML = aiStagedQuestions.map((q, idx) => `
-        <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-purple-500/50 transition-colors">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-2 flex-1">
+      container.innerHTML = aiStagedQuestions.map((q, qIdx) => {
+        const type = (q.type || 'MCQ').toUpperCase();
+        return `
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4 hover:border-blue-500/50 transition-colors">
+            
+            <!-- Card Header: Q Number, Type Selector, Points, Delete -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
               <div class="flex items-center space-x-2">
-                <span class="text-xs font-mono font-bold text-purple-400">#${idx + 1}</span>
-                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">${q.type}</span>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">${q.points || 10} pts</span>
+                <span class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-mono font-bold text-xs">#${qIdx + 1}</span>
+                <select onchange="updateAiQuestionType(${qIdx}, this.value)" class="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs font-semibold text-white focus:outline-none focus:border-blue-500">
+                  <option value="MCQ" ${type === 'MCQ' ? 'selected' : ''}>Multiple Choice (MCQ)</option>
+                  <option value="MULTI_SELECT" ${type === 'MULTI_SELECT' ? 'selected' : ''}>Multiple Select (Checkboxes)</option>
+                  <option value="TRUE_FALSE" ${type === 'TRUE_FALSE' ? 'selected' : ''}>True / False</option>
+                  <option value="SHORT_ANSWER" ${type === 'SHORT_ANSWER' ? 'selected' : ''}>Short Answer</option>
+                  <option value="ESSAY" ${type === 'ESSAY' ? 'selected' : ''}>Essay Response</option>
+                  <option value="CODE" ${type === 'CODE' ? 'selected' : ''}>Programming / Code</option>
+                </select>
               </div>
-              <p class="text-sm font-semibold text-white leading-relaxed">${q.prompt}</p>
 
-              ${q.options && q.options.length > 0 ? `
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                  ${q.options.map((opt, oIdx) => {
-                    const isCorrect = Array.isArray(q.correctAnswer) ? q.correctAnswer.includes(opt) : q.correctAnswer === opt;
+              <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-1.5 text-xs text-slate-400">
+                  <span>Points:</span>
+                  <input type="number" min="1" max="100" value="${q.points || 10}" onchange="updateAiQuestionPoints(${qIdx}, this.value)" class="w-14 px-2 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono text-center focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="button" onclick="removeAiQuestion(${qIdx})" class="text-slate-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors" title="Delete question">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Question Prompt (Editable Textarea) -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Question Prompt (Editable with LaTeX Math $...$)</label>
+                <span class="text-[10px] text-blue-400 font-mono">LaTeX Math: $...$</span>
+              </div>
+              <textarea rows="2" oninput="updateAiQuestionPrompt(${qIdx}, this.value)" class="w-full p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500 leading-relaxed font-mono">${(q.prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+              
+              <!-- Live Formula Render Container -->
+              <div class="mt-1.5 p-2 bg-slate-900/50 rounded-lg border border-slate-800/80 text-xs text-slate-300">
+                <span class="text-[9px] text-slate-500 block uppercase tracking-wider font-mono">Live Formula Render:</span>
+                <div id="aiPromptRender_${qIdx}" class="text-xs text-white py-0.5">${q.prompt || ''}</div>
+              </div>
+            </div>
+
+            <!-- Choices / Correct Answer Section (Dynamic according to type) -->
+            ${(type === 'MCQ' || type === 'MULTI_SELECT') ? `
+              <div class="space-y-2 pt-1">
+                <div class="flex items-center justify-between">
+                  <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Answer Choices & Correct Option</label>
+                  <button type="button" onclick="addAiQuestionOptionRow(${qIdx})" class="text-[11px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>Add Choice</span>
+                  </button>
+                </div>
+
+                <div class="space-y-1.5">
+                  ${(q.options || []).map((opt, oIdx) => {
+                    const isChecked = Array.isArray(q.correctAnswer) ? q.correctAnswer.includes(opt) : q.correctAnswer === opt;
+                    const inputType = type === 'MULTI_SELECT' ? 'checkbox' : 'radio';
                     return `
-                      <div class="text-xs px-3 py-2 rounded-lg border flex items-center space-x-2 ${isCorrect ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300 font-semibold' : 'bg-slate-900 border-slate-800 text-slate-400'}">
-                        <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${isCorrect ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'}">${String.fromCharCode(65 + oIdx)}</span>
-                        <span>${opt}</span>
-                        ${isCorrect ? '<i class="fa-solid fa-check ml-auto text-emerald-400 text-xs"></i>' : ''}
+                      <div class="flex items-center space-x-2">
+                        <input type="${inputType}" name="aiCorrectOpt_${qIdx}" ${isChecked ? 'checked' : ''} onchange="${type === 'MULTI_SELECT' ? `toggleAiQuestionMultiChoice(${qIdx}, '${opt.replace(/'/g, "\\'")}')` : `setAiQuestionCorrectChoice(${qIdx}, '${opt.replace(/'/g, "\\'")}')`}" class="text-blue-600 focus:ring-0 w-4 h-4 cursor-pointer" title="Mark as correct answer">
+                        <span class="w-5 text-center font-mono text-xs text-slate-400 font-bold">${String.fromCharCode(65 + oIdx)}.</span>
+                        <input type="text" value="${opt.replace(/"/g, '&quot;')}" oninput="updateAiQuestionOption(${qIdx}, ${oIdx}, this.value)" class="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500">
+                        <button type="button" onclick="removeAiQuestionOptionRow(${qIdx}, ${oIdx})" class="text-slate-500 hover:text-red-400 p-1.5 text-xs">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
                       </div>
                     `;
                   }).join('')}
                 </div>
-              ` : `
-                <div class="text-xs text-slate-400 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
-                  <span class="text-slate-500">Grading Note:</span> ${q.correctAnswer || q.rubric || 'Evaluated by instructor rubric.'}
+              </div>
+            ` : type === 'TRUE_FALSE' ? `
+              <div class="space-y-1.5 pt-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Correct Answer</label>
+                <div class="flex items-center space-x-6 text-xs">
+                  <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="aiTfChoice_${qIdx}" value="True" ${q.correctAnswer === 'True' ? 'checked' : ''} onchange="setAiQuestionCorrectChoice(${qIdx}, 'True')" class="text-blue-600 focus:ring-0">
+                    <span class="text-white font-bold">True</span>
+                  </label>
+                  <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="aiTfChoice_${qIdx}" value="False" ${q.correctAnswer === 'False' ? 'checked' : ''} onchange="setAiQuestionCorrectChoice(${qIdx}, 'False')" class="text-blue-600 focus:ring-0">
+                    <span class="text-white font-bold">False</span>
+                  </label>
                 </div>
-              `}
-            </div>
+              </div>
+            ` : type === 'SHORT_ANSWER' ? `
+              <div class="space-y-1 pt-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Expected Keyword / Key Answer</label>
+                <input type="text" value="${q.correctAnswer || ''}" oninput="setAiQuestionCorrectChoice(${qIdx}, this.value)" placeholder="e.g. Fundamental Theorem of Calculus" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500">
+              </div>
+            ` : `
+              <div class="space-y-1 pt-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Grading Rubric / Teacher Evaluation Notes</label>
+                <textarea rows="2" oninput="updateAiQuestionRubric(${qIdx}, this.value)" placeholder="Enter grading guidelines..." class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-300 focus:outline-none focus:border-blue-500">${q.rubric || q.correctAnswer || ''}</textarea>
+              </div>
+            `}
 
-            <button onclick="removeAiQuestion(${idx})" class="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-slate-900 transition-colors" title="Discard this question">
-              <i class="fa-regular fa-trash-can text-sm"></i>
-            </button>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      // Auto-render math in staged cards
+      if (window.renderMathInElement) {
+        renderMathInElement(container, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function updateAiQuestionPrompt(idx, val) {
+      if (aiStagedQuestions[idx]) {
+        aiStagedQuestions[idx].prompt = val;
+        const renderEl = document.getElementById(`aiPromptRender_${idx}`);
+        if (renderEl) {
+          renderEl.textContent = val;
+          if (window.renderMathInElement) {
+            renderMathInElement(renderEl, {
+              delimiters: [{ left: '$', right: '$', display: false }],
+              throwOnError: false
+            });
+          }
+        }
+      }
+    }
+
+    function updateAiQuestionType(idx, val) {
+      if (aiStagedQuestions[idx]) {
+        aiStagedQuestions[idx].type = val;
+        if (val === 'MCQ' || val === 'MULTI_SELECT') {
+          if (!aiStagedQuestions[idx].options || aiStagedQuestions[idx].options.length === 0) {
+            aiStagedQuestions[idx].options = ['Choice A', 'Choice B', 'Choice C', 'Choice D'];
+            aiStagedQuestions[idx].correctAnswer = 'Choice A';
+          }
+        } else if (val === 'TRUE_FALSE') {
+          aiStagedQuestions[idx].options = ['True', 'False'];
+          aiStagedQuestions[idx].correctAnswer = 'True';
+        }
+        renderAiStagedQuestions();
+      }
+    }
+
+    function updateAiQuestionPoints(idx, val) {
+      if (aiStagedQuestions[idx]) {
+        aiStagedQuestions[idx].points = Number(val) || 10;
+      }
+    }
+
+    function updateAiQuestionOption(qIdx, oIdx, val) {
+      if (aiStagedQuestions[qIdx] && aiStagedQuestions[qIdx].options) {
+        const oldVal = aiStagedQuestions[qIdx].options[oIdx];
+        aiStagedQuestions[qIdx].options[oIdx] = val;
+        if (aiStagedQuestions[qIdx].correctAnswer === oldVal) {
+          aiStagedQuestions[qIdx].correctAnswer = val;
+        } else if (Array.isArray(aiStagedQuestions[qIdx].correctAnswer)) {
+          const cIdx = aiStagedQuestions[qIdx].correctAnswer.indexOf(oldVal);
+          if (cIdx >= 0) aiStagedQuestions[qIdx].correctAnswer[cIdx] = val;
+        }
+      }
+    }
+
+    function setAiQuestionCorrectChoice(qIdx, val) {
+      if (aiStagedQuestions[qIdx]) {
+        aiStagedQuestions[qIdx].correctAnswer = val;
+      }
+    }
+
+    function toggleAiQuestionMultiChoice(qIdx, val) {
+      if (aiStagedQuestions[qIdx]) {
+        let cur = Array.isArray(aiStagedQuestions[qIdx].correctAnswer) ? [...aiStagedQuestions[qIdx].correctAnswer] : [];
+        if (cur.includes(val)) cur = cur.filter(x => x !== val);
+        else cur.push(val);
+        aiStagedQuestions[qIdx].correctAnswer = cur;
+      }
+    }
+
+    function addAiQuestionOptionRow(qIdx) {
+      if (aiStagedQuestions[qIdx]) {
+        if (!aiStagedQuestions[qIdx].options) aiStagedQuestions[qIdx].options = [];
+        const nextLetter = String.fromCharCode(65 + aiStagedQuestions[qIdx].options.length);
+        aiStagedQuestions[qIdx].options.push(`Choice ${nextLetter}`);
+        renderAiStagedQuestions();
+      }
+    }
+
+    function removeAiQuestionOptionRow(qIdx, oIdx) {
+      if (aiStagedQuestions[qIdx] && aiStagedQuestions[qIdx].options) {
+        aiStagedQuestions[qIdx].options.splice(oIdx, 1);
+        renderAiStagedQuestions();
+      }
+    }
+
+    function updateAiQuestionRubric(idx, val) {
+      if (aiStagedQuestions[idx]) {
+        aiStagedQuestions[idx].rubric = val;
+        aiStagedQuestions[idx].correctAnswer = val;
+      }
+    }
+
+    function addAiQuestionManually() {
+      const q = {
+        id: 'q_ext_' + Date.now(),
+        order: aiStagedQuestions.length + 1,
+        type: 'MCQ',
+        points: 10,
+        prompt: 'New Question Prompt (supports $LaTeX$ math)',
+        options: ['Choice A', 'Choice B', 'Choice C', 'Choice D'],
+        correctAnswer: 'Choice A'
+      };
+      aiStagedQuestions.push(q);
+      renderAiStagedQuestions();
+      document.getElementById('aiGeneratedBadgeCount').textContent = `${aiStagedQuestions.length} Questions Ready`;
     }
 
     function removeAiQuestion(idx) {
@@ -1117,7 +1689,7 @@
 
     async function appendAllAiQuestionsToExam() {
       if (aiStagedQuestions.length === 0) {
-        alert('No generated questions to append.');
+        alert('No extracted questions to append.');
         return;
       }
 
@@ -1139,11 +1711,100 @@
       aiStagedQuestions = [];
       document.getElementById('aiPreviewContainer').classList.add('hidden');
 
-      // Auto-save exam with newly added questions
       await saveExamConfiguration(new Event('submit'));
-
       alert(`✅ Success! Added ${questionsList.length - startingOrder} questions to your Exam. Switching to the Exam Builder view.`);
       switchTab('exams');
+    }
+
+    // ==============================================================
+    // DIRECT EXAM & IN-HALL PUBLICATION
+    // ==============================================================
+    async function publishExtractedExamDirectly() {
+      if (aiStagedQuestions.length === 0) {
+        alert('Please extract or add at least one question before publishing.');
+        return;
+      }
+
+      const subject = document.getElementById('aiDocSubject').value;
+      const info = COURSE_MAP[subject] || { code: 'MATH-101' };
+      const title = document.getElementById('aiDocExamTitle').value.trim() || `${subject} - Midterm Examination`;
+      const durationMinutes = Number(document.getElementById('aiDocDuration').value) || 90;
+      const scheduledStartTime = document.getElementById('aiDocScheduledTime').value || null;
+      const instructorName = document.getElementById('aiDocInstructor').value.trim() || info.defaultInstructor;
+
+      const examPayload = {
+        title,
+        courseCode: info.code,
+        subject,
+        instructorName,
+        scheduledStartTime,
+        durationMinutes,
+        maxViolations: 3,
+        totalMarks: aiStagedQuestions.reduce((acc, q) => acc + (Number(q.points) || 10), 0),
+        randomizeQuestions: false,
+        autoSuspend: true,
+        description: `Official ${subject} Examination. Shegger Institute of Technology.`,
+        questions: aiStagedQuestions
+      };
+
+      try {
+        // 1. Save or update exam
+        const exRes = await fetch('/api/exams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(examPayload)
+        });
+        const exData = await exRes.json();
+        if (!exData.success) throw new Error(exData.error || 'Failed to save exam');
+
+        const savedExam = exData.exam;
+        currentExam = savedExam;
+        questionsList = savedExam.questions;
+        populateExamForm();
+
+        // 2. Immediately create In-Hall session
+        const sessRes = await fetch('/api/sessions/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            examId: savedExam.id,
+            roomName: `SIT Main Hall - ${subject}`,
+            durationMinutes,
+            subject,
+            courseCode: info.code,
+            instructorName,
+            scheduledStartTime
+          })
+        });
+        const sessData = await sessRes.json();
+        if (!sessData.success) throw new Error(sessData.error || 'Failed to create session');
+
+        updateActiveSessionDisplay(sessData.session);
+
+        // 3. Show Publication Confirmation Modal
+        document.getElementById('pubSuccessPin').textContent = sessData.session.pin;
+        document.getElementById('pubSuccessDescription').textContent = 
+          `Exam "${title}" (${info.code}) has been published with ${aiStagedQuestions.length} extracted questions.`;
+        
+        if (scheduledStartTime) {
+          document.getElementById('pubSuccessSchedule').textContent = `📅 Scheduled Start: ${new Date(scheduledStartTime).toLocaleString()}`;
+        } else {
+          document.getElementById('pubSuccessSchedule').textContent = '⚡ Exam Starts: Immediately';
+        }
+
+        document.getElementById('publishSuccessModal').classList.remove('hidden');
+      } catch (err) {
+        alert('Publishing error: ' + err.message);
+      }
+    }
+
+    function closePublishModal() {
+      document.getElementById('publishSuccessModal').classList.add('hidden');
+    }
+
+    function goToLiveSessionFromPublish() {
+      closePublishModal();
+      switchTab('sessions');
     }
 
     // ==============================================================

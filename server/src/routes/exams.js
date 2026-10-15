@@ -16,13 +16,16 @@ router.get('/:id', (req, res) => {
 
 // POST create/update exam
 router.post('/', (req, res) => {
-  const { id, title, courseCode, description, durationMinutes, totalMarks, randomizeQuestions, autoSuspend, maxViolations, questions } = req.body;
+  const { id, title, courseCode, subject, instructorName, scheduledStartTime, description, durationMinutes, totalMarks, randomizeQuestions, autoSuspend, maxViolations, questions } = req.body;
   if (!title) return res.status(400).json({ success: false, error: 'Exam title is required' });
 
   const saved = store.saveExam({
     id,
     title,
     courseCode: courseCode || 'UNIV-101',
+    subject: subject || 'Calculus I',
+    instructorName: instructorName || '',
+    scheduledStartTime: scheduledStartTime || null,
     description: description || '',
     durationMinutes: Number(durationMinutes) || 60,
     totalMarks: Number(totalMarks) || 100,
@@ -41,43 +44,60 @@ router.delete('/:id', (req, res) => {
   res.json({ success: true, message: 'Exam deleted successfully' });
 });
 
-// POST AI Question Generator & Document Extractor
+// POST AI Document Question Extractor
+// Faithfully extracts existing questions from uploaded exam papers (.pdf, .doc, .docx, .txt)
+// Strict requirement: Does NOT invent questions. Preserves math symbols, variables, and formulas.
 router.post('/ai-generate', async (req, res) => {
-  const { text, count = 5, type = 'ALL', apiKey } = req.body;
+  const { text, courseCode, subject, apiKey } = req.body;
 
-  if (!text || text.trim().length < 10) {
-    return res.status(400).json({ success: false, error: 'Document or text content is required (at least 10 characters).' });
+  if (!text || text.trim().length < 5) {
+    return res.status(400).json({ success: false, error: 'Document or exam text content is required.' });
   }
 
-  // 1. If Gemini API Key is provided, use Google Gemini
+  // 1. If Gemini API Key is provided, use Google Gemini with strict extraction prompt
   if (apiKey && apiKey.trim().length > 10) {
     try {
-      const prompt = `You are a university exam creator for Shegger Institute of Technology (SIT).
-Generate exactly ${count} academic questions based strictly on the following text.
-Question Types to include: ${type === 'ALL' ? 'Multiple Choice (MCQ), True/False, and Short Answer' : type}.
+      const prompt = `You are an academic exam extraction engine for Shegger Institute of Technology (SIT).
+The provided text is an official university exam paper prepared by a professor${subject ? ` for ${subject}` : ''}.
+Your job is to faithfully EXTRACT ALL the questions that already exist in this document EXACTLY as the teacher prepared them.
+DO NOT generate new questions. DO NOT omit any questions or answer choices.
 
-You MUST return ONLY a valid JSON array of objects without any markdown code formatting or backticks.
-Each object must have the following schema:
-{
-  "id": "q_ai_1",
-  "order": 1,
-  "type": "MCQ" | "TRUE_FALSE" | "SHORT_ANSWER" | "ESSAY",
-  "points": 10,
-  "prompt": "Question text...",
-  "options": ["Choice A", "Choice B", "Choice C", "Choice D"], // empty array if ESSAY or SHORT_ANSWER
-  "correctAnswer": "Choice A", // or "True"/"False" or expected keyword
-  "rubric": "Grading guidance..."
-}
+CRUCIAL MATHEMATICAL & SCIENTIFIC REQUIREMENTS:
+1. Preserve ALL mathematical symbols, equations, and variables EXACTLY (e.g. x, y, z, t, theta, alpha, beta, lambda, pi, Delta).
+2. Preserve all calculus and physics notations (e.g. fractions \\frac{a}{b}, integrals \\int_a^b, derivatives \\frac{df}{dx}, limits \\lim_{x \\to 0}, square roots \\sqrt{}, vectors \\vec{F}).
+3. Convert all math expressions into clean LaTeX KaTeX syntax wrapped in single dollar signs ($...$) for inline math or double dollar signs ($$...$$) for display equations.
+4. Preserve all chemical equations and molecular formulas (e.g. $\\text{H}_2\\text{O}$, $\\text{CO}_2$, $\\text{H}_2\\text{SO}_4$, oxidation states).
 
-TEXT CONTENT:
-${text.substring(0, 8000)}`;
+QUESTION PARSING:
+- Extract every question in order.
+- Determine question type: 'MCQ' (multiple choice), 'MULTI_SELECT', 'TRUE_FALSE', 'SHORT_ANSWER', 'ESSAY', or 'CODE'.
+- For Multiple Choice: extract the question prompt and all choices (A, B, C, D...).
+- Identify Correct Answers: If marked with an asterisk (*), bold, [x], 'Ans:', or listed in an Answer Key at the end of the document, set 'correctAnswer' to the exact correct choice text. If no answer is indicated, set 'correctAnswer': "".
+- Points: If specified (e.g. [5 points], 10 marks), extract the number; otherwise default to 10.
+
+Return ONLY a valid JSON array of objects without markdown backticks or commentary:
+[
+  {
+    "id": "q_ext_1",
+    "order": 1,
+    "type": "MCQ" | "TRUE_FALSE" | "SHORT_ANSWER" | "ESSAY" | "CODE",
+    "points": 10,
+    "prompt": "Question text with LaTeX math...",
+    "options": ["Choice A", "Choice B", "Choice C", "Choice D"],
+    "correctAnswer": "Choice A",
+    "rubric": "Grading guidance or solution if in document"
+  }
+]
+
+EXAM DOCUMENT TEXT:
+${text.substring(0, 15000)}`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.3 }
+          generationConfig: { temperature: 0.1 }
         })
       });
 
@@ -87,133 +107,206 @@ ${text.substring(0, 8000)}`;
       if (rawOutput) {
         const cleanJson = rawOutput.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(cleanJson);
-        return res.json({ success: true, questions: parsed, source: 'Gemini AI' });
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return res.json({ success: true, questions: parsed, source: 'Gemini Document Extractor' });
+        }
       }
     } catch (err) {
-      console.warn('Gemini API call failed, falling back to built-in extractor:', err.message);
+      console.warn('Gemini extraction failed, falling back to SIT built-in extractor:', err.message);
     }
   }
 
-  // 2. Intelligent Built-in Parser & Question Generator (Zero API Key Required!)
+  // 2. High-Precision Built-in SIT Document Extractor (Offline & Math-Preserving)
   try {
-    const generated = extractOrGenerateQuestions(text, Number(count) || 5, type);
-    return res.json({ success: true, questions: generated, source: 'Built-in SIT Intelligent Extractor' });
+    const extracted = parseExamDocumentStrict(text);
+    return res.json({ success: true, questions: extracted, source: 'Built-in SIT Document Extractor' });
   } catch (err) {
-    return res.status(500).json({ success: false, error: 'Failed to extract questions: ' + err.message });
+    return res.status(500).json({ success: false, error: 'Failed to extract exam questions: ' + err.message });
   }
 });
 
-// Heuristic Parser for question extraction from documents
-function extractOrGenerateQuestions(rawText, targetCount, preferredType) {
-  const lines = rawText.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+// Strict Academic Exam Parser
+// Preserves math symbols ($...$, Greek letters, exponents, integrals, fractions, chemistry)
+function parseExamDocumentStrict(rawText) {
+  // Normalize line breaks
+  const normalized = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = normalized.split('\n');
+
+  // 1. Check for global Answer Key at the end of the document
+  // (e.g. "Answer Key: 1. A 2. C 3. B" or "Answers: 1-B, 2-D")
+  const answerKeyMap = {};
+  let contentLines = [];
+  let inAnswerKeySection = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (/^(?:answer\s*key|solutions?\s*key)\s*[:\-]/i.test(line) ||
+        (/^(?:answers?|solutions?)\s*[:\-]/i.test(line) && /\b\d+[\.\)\:\-]\s*[A-D]/i.test(line))) {
+      inAnswerKeySection = true;
+    }
+
+    if (inAnswerKeySection) {
+      // Find matches like "1. A", "1) B", "1-C", "1: D", "1. True"
+      const matches = line.matchAll(/(?:^|[,\s])(\d+)[\.\)\:\-]\s*([A-Da-d]|True|False|[^\s,;]+)/gi);
+      for (const m of matches) {
+        answerKeyMap[parseInt(m[1], 10)] = m[2].trim();
+      }
+    } else {
+      contentLines.push(lines[i]);
+    }
+  }
+
+  // 2. Extract Questions
   const questions = [];
-
-  // Check if document already has question patterns like "1. Question... A) ... B) ..."
   let currentQ = null;
-  for (const line of lines) {
-    const qMatch = line.match(/^(\d+)[\.\)\:]\s*(.+)/);
-    const optMatch = line.match(/^([A-Da-d])[\.\)\:]\s*(.+)/);
-    const ansMatch = line.match(/^(?:Answer|Ans|Correct)\s*[\:\-]\s*([A-Da-d]|True|False|.+)/i);
+  let currentPromptLines = [];
 
-    if (qMatch) {
-      if (currentQ && currentQ.prompt) questions.push(currentQ);
+  // Patterns for Question start:
+  // e.g. "1. ", "1) ", "(1) ", "Question 1:", "Q1.", "Problem 1:", "1 - "
+  const qStartRegex = /^(?:Question\s*|Q\s*|Problem\s*|Prob\s*|Exercise\s*)?\(?(\d+)[\.\)\:\-]\s*(.*)/i;
+  // Option start: e.g. "A. ", "A) ", "(A) ", "[A] ", "a) "
+  const optRegex = /^(?:\(?([A-Da-d])[\.\)\]]|\b([A-Da-d])\))\s*(.*)/;
+  // Per-question answer indicator: "Answer: B", "Ans: A", "Correct: True"
+  const singleAnsRegex = /^(?:Answer|Ans|Correct(?:\s*Answer)?)\s*[:\-]\s*(.+)/i;
+
+  function finalizeCurrentQuestion() {
+    if (!currentQ) return;
+    currentQ.prompt = currentPromptLines.join('\n').trim();
+
+    // Determine type
+    if (currentQ.options.length >= 2) {
+      const isTF = currentQ.options.length === 2 &&
+        currentQ.options.some((o) => /^true$/i.test(o)) &&
+        currentQ.options.some((o) => /^false$/i.test(o));
+      currentQ.type = isTF ? 'TRUE_FALSE' : 'MCQ';
+    } else if (/\b(explain|derive|calculate|discuss|prove|show that|analyze|describe)\b/i.test(currentQ.prompt) && currentQ.prompt.length > 80) {
+      currentQ.type = 'ESSAY';
+    } else {
+      currentQ.type = 'SHORT_ANSWER';
+    }
+
+    // Map answer key if available
+    const keyAnswer = answerKeyMap[currentQ.order];
+    if (keyAnswer && !currentQ.correctAnswer) {
+      if (['A', 'B', 'C', 'D'].includes(keyAnswer.toUpperCase())) {
+        const idx = keyAnswer.toUpperCase().charCodeAt(0) - 65;
+        if (currentQ.options[idx]) currentQ.correctAnswer = currentQ.options[idx];
+        else currentQ.correctAnswer = keyAnswer;
+      } else {
+        currentQ.correctAnswer = keyAnswer;
+      }
+    }
+
+    // Default points
+    if (!currentQ.points) currentQ.points = 10;
+
+    questions.push(currentQ);
+    currentQ = null;
+    currentPromptLines = [];
+  }
+
+  for (let i = 0; i < contentLines.length; i++) {
+    const rawLine = contentLines[i];
+    const trimmed = rawLine.trim();
+    if (!trimmed) continue;
+
+    const qMatch = trimmed.match(qStartRegex);
+    const optMatch = trimmed.match(optRegex);
+    const ansMatch = trimmed.match(singleAnsRegex);
+
+    if (qMatch && !optMatch) {
+      // New Question Starts
+      finalizeCurrentQuestion();
+      const qNum = parseInt(qMatch[1], 10);
       currentQ = {
         id: 'q_ext_' + (questions.length + 1),
         order: questions.length + 1,
         type: 'MCQ',
         points: 10,
-        prompt: qMatch[2],
+        prompt: '',
         options: [],
         correctAnswer: '',
-        rubric: 'Standard evaluation'
+        rubric: 'Standard Academic Evaluation'
       };
-    } else if (optMatch && currentQ) {
-      currentQ.options.push(optMatch[2]);
+
+      // Check for points in prompt like "[10 pts]" or "(5 marks)"
+      let promptText = qMatch[2];
+      const ptsMatch = promptText.match(/\[(\d+)\s*(?:pts|points|marks)\]|\((\d+)\s*(?:pts|points|marks)\)/i);
+      if (ptsMatch) {
+        currentQ.points = parseInt(ptsMatch[1] || ptsMatch[2], 10);
+        promptText = promptText.replace(ptsMatch[0], '').trim();
+      }
+
+      currentPromptLines.push(promptText);
     } else if (ansMatch && currentQ) {
+      // Question-specific answer indicator
       const ansVal = ansMatch[1].trim();
       if (['A', 'B', 'C', 'D'].includes(ansVal.toUpperCase())) {
         const idx = ansVal.toUpperCase().charCodeAt(0) - 65;
         if (currentQ.options[idx]) currentQ.correctAnswer = currentQ.options[idx];
+        else currentQ.correctAnswer = ansVal;
       } else {
         currentQ.correctAnswer = ansVal;
       }
-    }
-  }
-  if (currentQ && currentQ.prompt) questions.push(currentQ);
+    } else if (optMatch && currentQ) {
+      // Option line
+      const optLetter = (optMatch[1] || optMatch[2]).toUpperCase();
+      let optText = optMatch[3].trim();
 
-  // If document had structured questions and we found some, finalize them
-  if (questions.length > 0) {
-    questions.forEach((q) => {
-      if (q.options.length === 0) {
-        q.type = 'SHORT_ANSWER';
-      } else if (!q.correctAnswer && q.options.length > 0) {
-        q.correctAnswer = q.options[0];
+      // Check if option is marked as correct (e.g. "*A) option" or "A) option *" or "[x]")
+      let isMarkedCorrect = false;
+      if (optText.endsWith('*') || optText.startsWith('*') || /\[x\]/i.test(optText)) {
+        isMarkedCorrect = true;
+        optText = optText.replace(/\*/g, '').replace(/\[x\]/gi, '').trim();
       }
-    });
-    return questions.slice(0, targetCount);
+
+      // Check if other options follow on the SAME line!
+      // (e.g. "A) 12    B) 24    C) 36    D) 48")
+      const inlineOpts = optText.split(/\s+(?=[B-Db-d][\.\)\]]\s+)/);
+      if (inlineOpts.length > 1) {
+        currentQ.options.push(inlineOpts[0].trim());
+        for (let j = 1; j < inlineOpts.length; j++) {
+          const subMatch = inlineOpts[j].match(/^([B-Db-d])[\.\)\]]\s*(.*)/);
+          if (subMatch) {
+            currentQ.options.push(subMatch[2].trim());
+          } else {
+            currentQ.options.push(inlineOpts[j].trim());
+          }
+        }
+      } else {
+        currentQ.options.push(optText);
+        if (isMarkedCorrect) {
+          currentQ.correctAnswer = optText;
+        }
+      }
+    } else if (currentQ) {
+      // Continuation of prompt
+      currentPromptLines.push(trimmed);
+    }
   }
 
-  // Otherwise, document is lecture notes / text: intelligently generate questions from sentences!
-  const sentences = rawText
-    .replace(/\n/g, ' ')
-    .split(/(?<=[.?!])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 35 && s.length < 250);
+  finalizeCurrentQuestion();
 
-  const fallbackQuestions = [];
-  const countToMake = Math.min(targetCount, Math.max(3, sentences.length));
-
-  for (let i = 0; i < countToMake; i++) {
-    const sentence = sentences[i % sentences.length];
-    const qIndex = i + 1;
-
-    if (preferredType === 'TRUE_FALSE' || (preferredType === 'ALL' && i % 3 === 1)) {
-      fallbackQuestions.push({
-        id: 'q_gen_' + qIndex,
-        order: qIndex,
-        type: 'TRUE_FALSE',
-        points: 5,
-        prompt: `Based on the provided materials, determine if the following statement is True or False: "${sentence}"`,
-        options: ['True', 'False'],
-        correctAnswer: 'True',
-        rubric: 'Conceptual accuracy based on text.'
-      });
-    } else if (preferredType === 'ESSAY' || (preferredType === 'ALL' && i % 3 === 2)) {
-      fallbackQuestions.push({
-        id: 'q_gen_' + qIndex,
-        order: qIndex,
-        type: 'ESSAY',
-        points: 20,
-        prompt: `Elaborate thoroughly on the concepts discussed in the following excerpt: "${sentence.slice(0, 100)}...". Discuss mechanisms, advantages, and engineering trade-offs.`,
-        options: [],
-        correctAnswer: 'Subjective response evaluated by instructor rubric.',
-        rubric: 'Student demonstrates full mastery of key concepts.'
-      });
-    } else {
-      // MCQ
-      const words = sentence.split(' ').filter((w) => w.length > 5);
-      const keyWord = words.length > 0 ? words[Math.floor(words.length / 2)].replace(/[^a-zA-Z]/g, '') : 'Concept';
-      const promptText = sentence.replace(new RegExp('\\b' + keyWord + '\\b', 'i'), '_______');
-
-      fallbackQuestions.push({
-        id: 'q_gen_' + qIndex,
-        order: qIndex,
-        type: 'MCQ',
+  // If standard numbering was not found, split by double line breaks / problem paragraphs
+  if (questions.length === 0) {
+    const blocks = rawText.split(/\n\s*\n/).map((b) => b.trim()).filter((b) => b.length > 15);
+    for (let i = 0; i < blocks.length; i++) {
+      const b = blocks[i];
+      questions.push({
+        id: 'q_ext_' + (i + 1),
+        order: i + 1,
+        type: /\b(derive|calculate|solve|find|evaluate|show|prove)\b/i.test(b) ? 'ESSAY' : 'SHORT_ANSWER',
         points: 10,
-        prompt: `Fill in the blank in the following principle: "${promptText}"`,
-        options: [
-          keyWord,
-          'Alternative ' + keyWord,
-          'Inverse ' + keyWord,
-          'None of the above'
-        ],
-        correctAnswer: keyWord,
-        rubric: 'Direct keyword identification.'
+        prompt: b,
+        options: [],
+        correctAnswer: '',
+        rubric: 'Instructor evaluation'
       });
     }
   }
 
-  return fallbackQuestions;
+  return questions;
 }
 
 module.exports = router;
+module.exports.parseExamDocumentStrict = parseExamDocumentStrict;

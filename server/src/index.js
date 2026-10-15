@@ -80,3 +80,5 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🛡️ 3. Admin Center:    http://localhost:${PORT}/admin`);
   console.log('================================================================');
 });
+
+module.exports = { app, server };

@@ -78,28 +78,44 @@ module.exports = {
   },
 
   // Sessions (In-Hall Room with PIN)
-  createSession(examId, roomName, durationMinutes, rules = {}) {
+  createSession(examId, roomName, durationMinutes, options = {}) {
     const exam = exams.find((e) => e.id === examId);
     if (!exam) throw new Error('Exam not found');
 
     const sessionPin = Math.floor(100000 + Math.random() * 900000).toString();
+    const isScheduled = Boolean(options.scheduledStartTime && new Date(options.scheduledStartTime) > new Date());
+
     const session = {
       pin: sessionPin,
       examId,
       examTitle: exam.title,
-      courseCode: exam.courseCode || 'CS-301',
+      subject: options.subject || exam.subject || 'Calculus I',
+      courseCode: options.courseCode || exam.courseCode || 'MATH-101',
+      instructorName: options.instructorName || exam.instructorName || 'SIT Faculty Instructor',
       roomName: roomName || 'Main Examination Hall',
-      durationMinutes: durationMinutes || exam.durationMinutes || 60,
-      maxViolations: Number(rules.maxViolations) || Number(exam.maxViolations) || 3,
-      autoSuspend: rules.autoSuspend !== undefined ? Boolean(rules.autoSuspend) : true,
-      status: 'ACTIVE', // ACTIVE, PAUSED, ENDED
-      startTime: new Date().toISOString(),
+      durationMinutes: Number(durationMinutes) || Number(exam.durationMinutes) || 60,
+      scheduledStartTime: options.scheduledStartTime || null,
+      instructions: options.instructions || exam.instructions || 'Read each question thoroughly. Kiosk lockdown and focus tracking are strictly enforced.',
+      maxViolations: Number(options.maxViolations) || Number(exam.maxViolations) || 3,
+      autoSuspend: options.autoSuspend !== undefined ? Boolean(options.autoSuspend) : true,
+      status: isScheduled ? 'SCHEDULED' : 'ACTIVE', // SCHEDULED, ACTIVE, PAUSED, ENDED
+      startTime: isScheduled ? options.scheduledStartTime : new Date().toISOString(),
       endTime: null,
-      students: {}, // Clean: dynamically added when students join
+      students: {},
       createdAt: new Date().toISOString(),
     };
 
     sessions[sessionPin] = session;
+    persistData();
+    return session;
+  },
+
+  forceStartSession(pin) {
+    const session = sessions[pin];
+    if (!session) return null;
+    session.status = 'ACTIVE';
+    session.startTime = new Date().toISOString();
+    session.scheduledStartTime = null;
     persistData();
     return session;
   },

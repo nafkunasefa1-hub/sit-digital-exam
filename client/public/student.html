@@ -194,6 +194,58 @@
   </div>
 
   <!-- ============================================================== -->
+  <!-- STEP 1B: SCHEDULED EXAM WAITING ROOM SCREEN                    -->
+  <!-- ============================================================== -->
+  <div id="examWaitingRoomScreen" class="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-lg mx-auto w-full z-10 hidden">
+    <div class="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-7 sm:p-9 shadow-2xl backdrop-blur-md text-center space-y-6">
+      
+      <!-- Seal & Header -->
+      <div>
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-950 border border-indigo-500/40 p-1 flex items-center justify-center shadow-lg mb-3">
+          <img src="/sit-logo.png" alt="SIT Logo" class="w-full h-full object-contain rounded-xl">
+        </div>
+        <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 text-xs font-semibold mb-2">
+          <i class="fa-solid fa-hourglass-half text-indigo-400"></i>
+          <span>Institutional Examination Waiting Room</span>
+        </div>
+        <h2 class="text-2xl font-black text-white" id="waitingExamTitle">Quarter Course Examination</h2>
+        <div class="mt-2 flex flex-wrap items-center justify-center gap-2">
+          <span class="px-3 py-1 rounded-lg text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30" id="waitingCourseBadge">Calculus I (MATH-101)</span>
+          <span class="px-3 py-1 rounded-lg text-xs text-slate-300 bg-slate-800" id="waitingInstructor">Instructor: Faculty Instructor</span>
+        </div>
+      </div>
+
+      <!-- Live Waiting Countdown Box -->
+      <div class="bg-slate-950 p-6 rounded-2xl border border-indigo-500/30 shadow-inner space-y-2">
+        <span class="text-xs uppercase font-bold tracking-widest text-indigo-400 block">Exam Session Unlocks In</span>
+        <div class="text-4xl sm:text-5xl font-mono font-black text-white tracking-wider animate-pulse select-none" id="waitingCountdownDisplay">--:--:--</div>
+        <div class="text-[11px] text-slate-400 font-mono pt-1" id="waitingScheduledTime">Scheduled: Oct 16, 2026</div>
+      </div>
+
+      <!-- Student & Hall Information Card -->
+      <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-xs text-left space-y-1.5 font-mono">
+        <div class="flex justify-between items-center"><span class="text-slate-500">Student:</span> <span class="text-white font-bold" id="waitingStudentName">--</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500">Student ID:</span> <span class="text-indigo-400 font-bold" id="waitingStudentId">--</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500">Hall Seat:</span> <span class="text-slate-200" id="waitingSeatNumber">--</span></div>
+      </div>
+
+      <!-- Notice & Auto-launch Indicator -->
+      <div class="space-y-3">
+        <div class="p-3 bg-indigo-950/30 border border-indigo-500/20 rounded-xl text-xs text-slate-300 text-left flex items-start space-x-2">
+          <i class="fa-solid fa-circle-info text-indigo-400 mt-0.5"></i>
+          <span>Your device is verified and secured in kiosk mode. The active examination paper will automatically launch as soon as the countdown reaches zero or when the instructor opens the hall.</span>
+        </div>
+
+        <div class="flex items-center justify-center space-x-2 text-xs text-emerald-400 font-medium">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Connected to SIT Campus Exam Server &bull; Waiting for Start</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
   <!-- STEP 2: ACTIVE EXAM RUNNER VIEW                                -->
   <!-- ============================================================== -->
   <div id="examRunnerScreen" class="flex-1 flex flex-col hidden z-10">
@@ -206,7 +258,7 @@
         <div>
           <div class="text-xs font-bold text-white flex items-center gap-1.5">
             <span id="runnerStudentName">Student Name</span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-600/30 text-indigo-300 font-mono">SIT</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold font-mono" id="runnerCourseBadge">MATH-101</span>
           </div>
           <div class="text-[10px] text-slate-400 font-mono" id="runnerStudentId">SIT-1001 &bull; Seat B-12</div>
         </div>
@@ -354,6 +406,8 @@
     let seatNumber = '';
     let sessionPin = '';
     let examData = null;
+    let currentSessionInfo = null;
+    let waitingRoomTimerInterval = null;
     let currentQIndex = 0;
     let answers = {};
     let flaggedQuestions = new Set();
@@ -609,16 +663,31 @@
 
         examData = msg.exam;
         answers = msg.savedAnswers || {};
+        currentSessionInfo = msg.sessionInfo || {};
 
-        // CRITICAL FIX: Ensure countdown starts freshly from now so the student gets their full duration!
-        const durationMinutes = Number(msg.sessionInfo?.durationMinutes) || Number(examData.durationMinutes) || 60;
-        examEndTime = Date.now() + (durationMinutes * 60 * 1000);
+        const isScheduled = Boolean(
+          msg.sessionInfo?.isScheduled ||
+          (msg.sessionInfo?.scheduledStartTime && new Date(msg.sessionInfo.scheduledStartTime).getTime() > Date.now())
+        );
 
-        startExamUI();
+        if (isScheduled) {
+          showWaitingRoom(msg.sessionInfo);
+        } else {
+          const durationMinutes = Number(msg.sessionInfo?.durationMinutes) || Number(examData.durationMinutes) || 90;
+          examEndTime = Date.now() + (durationMinutes * 60 * 1000);
+          startExamUI();
+        }
 
         if (msg.isSuspended) {
           lockExamSuspended('Session is currently suspended by Administrator.');
         }
+      } else if (msg.type === 'EXAM_UNLOCKED') {
+        // Teacher or Admin unlocked session!
+        if (waitingRoomTimerInterval) clearInterval(waitingRoomTimerInterval);
+        currentSessionInfo = { ...(currentSessionInfo || {}), ...(msg.sessionInfo || {}) };
+        const durationMinutes = Number(msg.sessionInfo?.durationMinutes) || Number(currentSessionInfo?.durationMinutes) || Number(examData?.durationMinutes) || 90;
+        examEndTime = Date.now() + (durationMinutes * 60 * 1000);
+        startExamUI();
       } else if (msg.type === 'STUDENT_JOIN_ERROR') {
         alert(msg.error);
       } else if (msg.type === 'EXAM_SUSPENDED') {
@@ -664,15 +733,67 @@
       }
     }
 
+    function showWaitingRoom(sessionInfo) {
+      if (waitingRoomTimerInterval) clearInterval(waitingRoomTimerInterval);
+      document.getElementById('checkInScreen').classList.add('hidden');
+      document.getElementById('examRunnerScreen').classList.add('hidden');
+      document.getElementById('examWaitingRoomScreen').classList.remove('hidden');
+
+      const subject = sessionInfo.subject || examData?.subject || 'Quarter Course';
+      const code = sessionInfo.courseCode || examData?.courseCode || 'SIT-101';
+      const title = examData?.title || `${subject} - Midterm Examination`;
+      const instructor = sessionInfo.instructorName || examData?.instructorName || 'Faculty Instructor';
+
+      document.getElementById('waitingExamTitle').textContent = title;
+      document.getElementById('waitingCourseBadge').textContent = `${subject} (${code})`;
+      document.getElementById('waitingInstructor').textContent = `Instructor: ${instructor}`;
+      document.getElementById('waitingStudentName').textContent = studentName;
+      document.getElementById('waitingStudentId').textContent = studentId;
+      document.getElementById('waitingSeatNumber').textContent = seatNumber;
+
+      const targetTime = new Date(sessionInfo.scheduledStartTime).getTime();
+      document.getElementById('waitingScheduledTime').textContent = `📅 Scheduled Start: ${new Date(targetTime).toLocaleString()}`;
+
+      function updateWaitingCountdown() {
+        const diff = targetTime - Date.now();
+        if (diff <= 0) {
+          clearInterval(waitingRoomTimerInterval);
+          document.getElementById('waitingCountdownDisplay').textContent = '00:00:00';
+          const durationMinutes = Number(sessionInfo.durationMinutes) || Number(examData?.durationMinutes) || 90;
+          examEndTime = Date.now() + (durationMinutes * 60 * 1000);
+          startExamUI();
+          return;
+        }
+
+        const hrs = Math.floor(diff / 3600000);
+        const mins = Math.floor((diff % 3600000) / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+
+        document.getElementById('waitingCountdownDisplay').textContent =
+          `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+
+      updateWaitingCountdown();
+      waitingRoomTimerInterval = setInterval(updateWaitingCountdown, 1000);
+    }
+
     function startExamUI() {
+      if (waitingRoomTimerInterval) clearInterval(waitingRoomTimerInterval);
       isExamActive = true;
       initLockdownEngine();
 
       document.getElementById('checkInScreen').classList.add('hidden');
+      document.getElementById('examWaitingRoomScreen').classList.add('hidden');
       document.getElementById('examRunnerScreen').classList.remove('hidden');
 
       document.getElementById('runnerStudentName').textContent = studentName;
       document.getElementById('runnerStudentId').textContent = `${studentId} • Seat: ${seatNumber}`;
+
+      if (document.getElementById('runnerCourseBadge')) {
+        const code = currentSessionInfo?.courseCode || examData?.courseCode || 'SIT-101';
+        const sub = currentSessionInfo?.subject || examData?.subject || '';
+        document.getElementById('runnerCourseBadge').textContent = sub ? `${sub} (${code})` : code;
+      }
 
       renderQuestion(0);
       renderPalette();

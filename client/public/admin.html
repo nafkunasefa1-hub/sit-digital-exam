@@ -109,7 +109,7 @@
       </div>
 
       <!-- Center Session PIN & Hall Status -->
-      <div class="flex items-center space-x-6">
+      <div class="flex flex-wrap items-center gap-3">
         <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-1.5 flex items-center space-x-3 shadow-inner">
           <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Session PIN:</span>
           <span class="text-xl font-extrabold text-red-400 font-mono tracking-widest cursor-pointer select-all" id="displaySessionPin" title="Session PIN">
@@ -120,9 +120,25 @@
           </button>
         </div>
 
-        <div class="hidden md:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-4 py-1.5 rounded-xl">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-xs text-slate-300 font-medium">Real-time WebSocket Live</span>
+        <!-- Course Name Badge -->
+        <div id="adminCourseBadge" class="hidden px-3 py-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-xl text-xs font-bold font-mono">
+          Calculus I (MATH-101)
+        </div>
+
+        <!-- Scheduled Start Badge -->
+        <div id="adminScheduleBadge" class="hidden px-3 py-1.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-xl text-xs font-mono font-semibold">
+          📅 Starts: --
+        </div>
+
+        <!-- Emergency Unlock / Start Button -->
+        <button id="btnAdminStartNow" onclick="adminStartSessionNow()" class="hidden px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1.5">
+          <i class="fa-solid fa-play text-xs"></i>
+          <span>Unlock Exam Now</span>
+        </button>
+
+        <div class="hidden lg:flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs text-slate-300 font-medium">Radar Live</span>
         </div>
       </div>
 
@@ -431,14 +447,67 @@
       setTimeout(() => playBeep(550, 'sawtooth', 0.25), 180);
     }
 
+    function updateAdminSessionHeader(session) {
+      if (!session) return;
+      activeSession = session;
+      document.getElementById('displaySessionPin').textContent = session.pin;
+      document.getElementById('headerRoomInfo').textContent = `${session.roomName || 'Campus Main Hall'} • ${session.subject || 'Quarter Course'}`;
+      
+      const courseEl = document.getElementById('adminCourseBadge');
+      if (courseEl) {
+        if (session.subject) {
+          courseEl.textContent = `${session.subject} (${session.courseCode || 'SIT-101'})`;
+          courseEl.classList.remove('hidden');
+        } else {
+          courseEl.classList.add('hidden');
+        }
+      }
+
+      const isScheduled = Boolean(session.scheduledStartTime && new Date(session.scheduledStartTime).getTime() > Date.now());
+      const schedEl = document.getElementById('adminScheduleBadge');
+      const startBtn = document.getElementById('btnAdminStartNow');
+
+      if (isScheduled) {
+        if (schedEl) {
+          schedEl.textContent = `📅 Starts: ${new Date(session.scheduledStartTime).toLocaleTimeString()}`;
+          schedEl.classList.remove('hidden');
+        }
+        if (startBtn) startBtn.classList.remove('hidden');
+      } else {
+        if (schedEl) schedEl.classList.add('hidden');
+        if (startBtn) startBtn.classList.add('hidden');
+      }
+    }
+
+    async function adminStartSessionNow() {
+      if (!activeSession) return;
+      if (!confirm(`🚀 Chief Invigilator Action: Unlock session PIN ${activeSession.pin} immediately? All waiting students will begin their exam.`)) return;
+
+      try {
+        const res = await fetch(`/api/sessions/${activeSession.pin}/start-now`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          updateAdminSessionHeader(data.session);
+          showNotificationToast(
+            '🚀 Examination Unlocked',
+            `Session PIN ${activeSession.pin} is now live. Waiting students have transitioned to the active exam runner.`,
+            'warning'
+          );
+        } else {
+          alert('Failed to start session: ' + data.error);
+        }
+      } catch (e) {
+        alert('Server communication error: ' + e.message);
+      }
+    }
+
     async function initData() {
       try {
         const sessRes = await fetch('/api/sessions');
         const sessData = await sessRes.json();
         if (sessData.sessions && sessData.sessions.length > 0) {
           activeSession = sessData.sessions[0];
-          document.getElementById('displaySessionPin').textContent = activeSession.pin;
-          document.getElementById('headerRoomInfo').textContent = `${activeSession.roomName || 'Campus Main Hall'} • ${activeSession.examTitle || 'University Exam'}`;
+          updateAdminSessionHeader(activeSession);
           studentsMap = activeSession.students || {};
           connectWebSocket(activeSession.pin);
           updateMetrics();
@@ -467,6 +536,7 @@
           if (msg.type === 'SESSION_INIT') {
             if (msg.session) {
               activeSession = msg.session;
+              updateAdminSessionHeader(activeSession);
               studentsMap = msg.session.students || {};
               updateMetrics();
               renderStudentsGrid();
