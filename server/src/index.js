@@ -31,12 +31,24 @@ app.use('/api/sessions', sessionsRouter);
 app.use('/api/grades', gradesRouter);
 app.use('/api/teachers', teachersRouter);
 
-// Unified Modern SaaS Platform Routes (Serves the 3-tab SaaS app)
-app.get(['/', '/student', '/teacher', '/admin'], (req, res) => {
+// Platform Routes
+app.get('/', (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
-// Dedicated standalone legacy routes
+app.get('/student', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'student.html'));
+});
+
+app.get('/teacher', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'teacher.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
+});
+
+// Standalone routes aliases
 app.get('/standalone/student', (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'student.html'));
 });

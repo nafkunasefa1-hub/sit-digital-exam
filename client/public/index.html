@@ -73,6 +73,10 @@
   <!-- Canvas Confetti for Exam Submission Celebration -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
+  <!-- PDF.js & Mammoth.js for client-side .pdf and .docx document exam extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
   <style>
     /* Premium Glassmorphism & Custom Transitions */
     .glass-card {
@@ -252,6 +256,22 @@
 
       </nav>
 
+      <!-- Quick Dedicated Portals Direct Launchers -->
+      <div class="hidden xl:flex items-center space-x-1.5 text-xs">
+        <a href="/teacher" class="px-2.5 py-1.5 rounded-lg bg-accent-500/10 hover:bg-accent-500/25 text-accent-300 border border-accent-500/30 transition-all flex items-center space-x-1.5 font-semibold" title="Launch Dedicated AI Ingestion Studio (.pdf, .docx, .doc, .txt)">
+          <i class="fa-solid fa-file-invoice text-amber-400"></i>
+          <span>Teacher AI Studio</span>
+        </a>
+        <a href="/admin" class="px-2.5 py-1.5 rounded-lg bg-functional-rose/10 hover:bg-functional-rose/25 text-rose-300 border border-functional-rose/30 transition-all flex items-center space-x-1.5 font-semibold" title="Launch Chief Invigilator Live Radar">
+          <i class="fa-solid fa-satellite-dish text-functional-rose animate-pulse"></i>
+          <span>Admin Radar</span>
+        </a>
+        <a href="/student" class="px-2.5 py-1.5 rounded-lg bg-primary-500/10 hover:bg-primary-500/25 text-primary-300 border border-primary-500/30 transition-all flex items-center space-x-1.5 font-semibold" title="Launch Student Kiosk Lockdown Exam Room">
+          <i class="fa-solid fa-lock text-functional-emerald"></i>
+          <span>Student Room</span>
+        </a>
+      </div>
+
       <!-- Right Controls: Status, Theme Toggle, Standalone Links -->
       <div class="flex items-center space-x-3">
         
@@ -382,10 +402,17 @@
               <div id="joinExamErrorMsg" class="hidden p-3 rounded-xl bg-functional-rose/10 border border-functional-rose/30 text-functional-rose text-xs"></div>
             </div>
 
-            <button onclick="handleStudentJoinExam()" class="mt-6 w-full py-3.5 bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-500 hover:to-accent-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-primary-500/25 transition-all flex items-center justify-center space-x-2 tactile-btn">
-              <span>Enter Examination Room</span>
-              <i class="fa-solid fa-arrow-right text-[11px]"></i>
-            </button>
+            <div class="mt-6 space-y-2">
+              <button onclick="handleStudentJoinExam()" class="w-full py-3.5 bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-500 hover:to-primary-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-primary-500/25 transition-all flex items-center justify-center space-x-2 tactile-btn">
+                <span>Enter Examination Room</span>
+                <i class="fa-solid fa-arrow-right text-[11px]"></i>
+              </button>
+              <a href="/student" class="w-full py-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-slate-700/80 rounded-xl text-xs font-semibold transition-all flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-shield-halved text-functional-emerald"></i>
+                <span>Launch Fullscreen Kiosk Room (/student)</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>
+            </div>
           </div>
 
           <!-- Active Quarter Course Sessions (Calculus I, Chemistry I, English I, Physics I) -->
@@ -688,6 +715,13 @@
           </button>
         </form>
         <p class="text-[11px] text-slate-500 font-mono">Quarter 1 Faculty PIN: 112233</p>
+        <div class="pt-3 border-t border-slate-800/80">
+          <a href="/teacher" class="text-xs text-accent-400 hover:text-accent-300 font-semibold flex items-center justify-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Or open Full Dedicated Faculty &amp; AI Ingestion Suite (/teacher)</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+        </div>
       </div>
 
       <!-- Faculty Suite Main Workspace (Once Authed) -->
@@ -733,6 +767,43 @@
           <div class="glass-card rounded-2xl p-5 border border-slate-800/80">
             <span class="text-xs font-medium text-slate-400">Quarter Pass Rate</span>
             <div class="text-2xl font-bold font-mono text-functional-emerald mt-1">86.4%</div>
+          </div>
+        </div>
+
+        <!-- Prominent AI Exam Document Extractor & Ingestion Banner -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-950/70 via-purple-950/60 to-indigo-950/70 border border-accent-500/40 p-6 sm:p-7 shadow-2xl">
+          <div class="absolute -top-12 -right-12 w-64 h-64 bg-accent-500/15 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div class="space-y-2 max-w-2xl">
+              <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-accent-500/20 text-accent-300 border border-accent-500/30 text-xs font-semibold">
+                <i class="fa-solid fa-file-invoice text-amber-400"></i>
+                <span>Faithful AI Exam Ingestion Portal &amp; Document Extractor</span>
+              </div>
+              <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Exam Document Question Extractor (.pdf, .docx, .doc, .txt)
+              </h3>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Upload your prepared exam papers directly. The Google Gemini 3.5 AI parses every question <strong>faithfully as written</strong>, preserves mathematical equations, formulas ($f(x)$, $\int$, $\frac{d}{dx}$, $\sqrt{x}$, Greek variables), chemical formulas, and options, allowing immediate review, manual question editing, and publishing.
+              </p>
+              <div class="flex flex-wrap gap-2 pt-1 text-[11px] text-slate-300">
+                <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-file-pdf text-red-400 mr-1.5"></i>PDF Extraction</span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-file-word text-blue-400 mr-1.5"></i>Word DOCX</span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-square-root-variable text-purple-400 mr-1.5"></i>Math LaTeX / KaTeX</span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-clock text-emerald-400 mr-1.5"></i>Timed Exam Lock</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto shrink-0">
+              <a href="/teacher" class="px-5 py-3 rounded-xl bg-gradient-to-r from-accent-600 to-primary-600 hover:from-accent-500 hover:to-primary-500 text-white text-xs font-bold shadow-xl shadow-accent-600/30 flex items-center justify-center space-x-2 transition-all tactile-btn">
+                <i class="fa-solid fa-wand-magic-sparkles text-sm text-amber-300"></i>
+                <span>Open Dedicated AI Ingestion Portal</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1"></i>
+              </a>
+              <button onclick="openExamBuilderWizard()" class="px-5 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-accent-500/30 text-xs font-semibold flex items-center justify-center space-x-2 transition-all">
+                <i class="fa-solid fa-pen-to-square text-accent-400"></i>
+                <span>Quick In-Page Wizard</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -841,9 +912,28 @@
                 </div>
               </div>
 
+              <!-- Real Document File Uploader Dropzone -->
+              <div class="border-2 border-dashed border-accent-500/30 hover:border-accent-500/60 rounded-2xl p-4 text-center bg-slate-950/60 transition-colors space-y-2">
+                <i class="fa-solid fa-cloud-arrow-up text-xl text-accent-400"></i>
+                <div class="text-xs font-bold text-white">Upload Prepared Exam Paper (.pdf, .docx, .doc, .txt)</div>
+                <p class="text-[11px] text-slate-400">Extracts text page-by-page preserving math symbols &amp; questions</p>
+                <input type="file" id="wizardFileInput" accept=".pdf,.docx,.doc,.txt" onchange="handleWizardFileUpload(event)" class="hidden">
+                <label for="wizardFileInput" class="inline-flex items-center space-x-2 px-4 py-1.5 bg-accent-600/30 hover:bg-accent-600/50 text-accent-300 border border-accent-500/40 rounded-xl text-xs font-semibold cursor-pointer transition-all">
+                  <i class="fa-solid fa-file-arrow-up"></i>
+                  <span>Select Exam Document</span>
+                </label>
+                <div id="wizardFileStatus" class="text-[11px] font-mono text-emerald-400 hidden"></div>
+              </div>
+
               <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1">Document Text / Questions Draft</label>
-                <textarea id="wDocText" rows="6" placeholder="Paste questions from exam paper or syllabus here..." class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono"></textarea>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-xs font-semibold text-slate-300">Document Text / Questions Draft</label>
+                  <a href="/teacher" target="_blank" class="text-[11px] text-accent-400 hover:text-accent-300 font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                    <span>Open Full Dedicated Extractor</span>
+                  </a>
+                </div>
+                <textarea id="wDocText" rows="6" placeholder="Upload document above or paste exam questions here..." class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono"></textarea>
               </div>
 
               <div class="flex items-center justify-between">
@@ -938,6 +1028,13 @@
           </button>
         </form>
         <p class="text-[11px] text-slate-500 font-mono">Master PIN: 779900</p>
+        <div class="pt-3 border-t border-slate-800/80">
+          <a href="/admin" class="text-xs text-functional-rose hover:text-rose-300 font-semibold flex items-center justify-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-satellite-dish"></i>
+            <span>Or open Full Dedicated Chief Invigilator Live Radar (/admin)</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+        </div>
       </div>
 
       <!-- Admin Control Center Workspace (Once Authed) -->
@@ -991,6 +1088,39 @@
             <div class="glass-card rounded-2xl p-5 border border-functional-rose/40 bg-functional-rose/5">
               <span class="text-xs text-functional-rose font-bold">Suspended Students</span>
               <div class="text-2xl font-bold font-mono text-functional-rose mt-1" id="admMetricSuspended">0</div>
+            </div>
+          </div>
+
+          <!-- Prominent Chief Invigilator Live Radar Banner -->
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-red-950/70 via-slate-900/80 to-purple-950/70 border border-functional-rose/40 p-6 sm:p-7 shadow-2xl">
+            <div class="absolute -top-12 -right-12 w-64 h-64 bg-functional-rose/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+              <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-functional-rose/20 text-rose-300 border border-functional-rose/30 text-xs font-semibold">
+                  <i class="fa-solid fa-satellite-dish text-functional-rose animate-pulse"></i>
+                  <span>Chief Invigilator Telemetry Radar Engine</span>
+                </div>
+                <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  Chief Invigilator Live Proctoring Radar
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  Real-time monitoring console for all active student sessions. Features multi-session picker, instant audible infraction alarms, periodic camera snapshots, student suspension/quarantine controls, and individual question response audit drawers.
+                </p>
+                <div class="flex flex-wrap gap-2 pt-1 text-[11px] text-slate-300">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-camera text-blue-400 mr-1.5"></i>Webcam Telemetry</span>
+                  <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-volume-high text-amber-400 mr-1.5"></i>Audio Siren Alarms</span>
+                  <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-gavel text-rose-400 mr-1.5"></i>Quarantine Enforcement</span>
+                  <span class="px-2.5 py-0.5 rounded-lg bg-slate-900/80 border border-slate-700/60"><i class="fa-solid fa-users text-purple-400 mr-1.5"></i>Faculty Management</span>
+                </div>
+              </div>
+
+              <div class="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto shrink-0">
+                <a href="/admin" class="px-5 py-3 rounded-xl bg-gradient-to-r from-functional-rose to-accent-600 hover:from-rose-500 hover:to-accent-500 text-white text-xs font-bold shadow-xl shadow-functional-rose/30 flex items-center justify-center space-x-2 transition-all tactile-btn">
+                  <i class="fa-solid fa-satellite-dish text-sm"></i>
+                  <span>Launch Live Radar Console</span>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1"></i>
+                </a>
+              </div>
             </div>
           </div>
 
@@ -1504,6 +1634,68 @@
         toast.classList.add('opacity-0', 'translate-x-full');
         setTimeout(() => toast.remove(), 400);
       }, 5000);
+    }
+
+    // Wizard File Upload Handler (PDF.js / Mammoth.js)
+    async function handleWizardFileUpload(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const statusEl = document.getElementById('wizardFileStatus');
+      statusEl.classList.remove('hidden');
+      statusEl.textContent = 'Parsing "' + file.name + '"...';
+      statusEl.className = 'text-[11px] font-mono text-accent-300 animate-pulse';
+
+      try {
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        let extractedText = '';
+
+        if (fileExt === 'pdf') {
+          if (!window.pdfjsLib) throw new Error('PDF library loading, please retry');
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let fullText = [];
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            let lastY = null;
+            let pageLines = [];
+            let currentLine = '';
+            for (const item of textContent.items) {
+              if (typeof item.str !== 'string') continue;
+              const y = item.transform ? item.transform[5] : null;
+              if (lastY !== null && y !== null && Math.abs(y - lastY) > 5) {
+                if (currentLine.trim()) pageLines.push(currentLine.trim());
+                currentLine = '';
+              }
+              currentLine += (currentLine ? ' ' : '') + item.str;
+              if (y !== null) lastY = y;
+            }
+            if (currentLine.trim()) pageLines.push(currentLine.trim());
+            fullText.push(pageLines.join('\n'));
+          }
+          extractedText = fullText.join('\n\n');
+        } else if (fileExt === 'docx') {
+          if (!window.mammoth) throw new Error('Word library loading, please retry');
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          extractedText = result.value;
+        } else {
+          extractedText = await file.text();
+        }
+
+        if (extractedText && extractedText.trim().length > 0) {
+          document.getElementById('wDocText').value = extractedText.trim();
+          statusEl.textContent = '✅ Loaded ' + file.name + ' (' + extractedText.trim().split(/\s+/).length + ' words)';
+          statusEl.className = 'text-[11px] font-mono text-emerald-400';
+          showToast('File Loaded', file.name + ' ready for AI Question Extraction.', 'success');
+        } else {
+          throw new Error('No readable text found in document');
+        }
+      } catch (err) {
+        statusEl.textContent = '⚠️ ' + err.message + '. Please paste text manually below.';
+        statusEl.className = 'text-[11px] font-mono text-amber-400';
+      }
     }
 
     // Announcement Banner
