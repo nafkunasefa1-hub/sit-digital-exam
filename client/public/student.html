@@ -334,9 +334,16 @@
         <div><span class="text-slate-500">Timestamp:</span> <span class="text-slate-300" id="receiptTimestamp">--</span></div>
       </div>
 
-      <button onclick="exitExamKiosk()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl">
-        Release Lockdown & Return to Home
-      </button>
+      <div class="space-y-3">
+        <div class="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 text-left flex items-start space-x-2">
+          <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+          <span>Your exam submission is permanently encrypted and archived. Student navigation to administrative and faculty portals is strictly prohibited.</span>
+        </div>
+        <button onclick="exitExamKiosk()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-power-off"></i>
+          <span>Exit Exam Session</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -621,8 +628,19 @@
       } else if (msg.type === 'EXAM_FORCE_SUBMITTED') {
         submitExamFinal();
       } else if (msg.type === 'EXAM_DISQUALIFIED') {
-        alert('You have been disqualified by the Administrator.');
-        window.location.href = '/';
+        isExamActive = false;
+        clearInterval(timerInterval);
+        if (ws) ws.close();
+        document.body.innerHTML = `
+          <div class="min-h-screen bg-red-950 flex flex-col items-center justify-center p-6 text-center text-red-200">
+            <div class="w-20 h-20 rounded-2xl bg-red-600/30 border-2 border-red-500 flex items-center justify-center text-4xl text-red-400 mb-6 shadow-2xl">
+              <i class="fa-solid fa-ban"></i>
+            </div>
+            <h2 class="text-3xl font-black text-white mb-2">SESSION DISQUALIFIED</h2>
+            <p class="text-sm text-red-300 max-w-md mb-6 leading-relaxed">You have been disqualified by the SIT Chief Examination Administrator for policy violations. Your examination has terminated.</p>
+            <div class="bg-black/50 border border-red-500/40 rounded-xl px-4 py-3 font-mono text-xs text-red-400 max-w-sm w-full">Status: DISQUALIFIED & ARCHIVED</div>
+          </div>
+        `;
       } else if (msg.type === 'SYNC_ANSWERS_ACK') {
         document.getElementById('saveStatus').textContent = 'Saved';
       } else if (msg.type === 'HEARTBEAT_ACK') {
@@ -944,9 +962,26 @@
 
     function exitExamKiosk() {
       if (document.exitFullscreen) {
-        document.exitFullscreen();
+        document.exitFullscreen().catch(() => {});
       }
-      window.location.href = '/';
+      try {
+        window.close();
+      } catch (e) {}
+
+      document.body.innerHTML = `
+        <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-slate-300">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-800 border border-emerald-500/40 p-1 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
+            <img src="/sit-logo.png" alt="SIT Seal" class="w-full h-full object-contain rounded-xl">
+          </div>
+          <h2 class="text-2xl font-bold text-white mb-2">Examination Concluded</h2>
+          <p class="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
+            Your exam session is officially finished and locked. Responses are securely archived on the SIT campus server. You may now close your browser tab.
+          </p>
+          <div class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-[11px] text-slate-500 font-mono">
+            &copy; Shegger Institute of Technology &bull; Single-Direction Kiosk Architecture
+          </div>
+        </div>
+      `;
     }
 
     function dismissStudentWarning() {

@@ -8,6 +8,7 @@ const { WebSocketServer } = require('ws');
 const examsRouter = require('./routes/exams');
 const sessionsRouter = require('./routes/sessions');
 const gradesRouter = require('./routes/grades');
+const { router: authRouter } = require('./routes/auth');
 const { setupWebSocket } = require('./socketHandler');
 const { seedDatabase } = require('./seed');
 
@@ -23,6 +24,7 @@ const PUBLIC_DIR = path.join(__dirname, '..', '..', 'client', 'public');
 app.use(express.static(PUBLIC_DIR));
 
 // API Routes
+app.use('/api/auth', authRouter);
 app.use('/api/exams', examsRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/grades', gradesRouter);
