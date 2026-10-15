@@ -48,19 +48,6 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
 });
 
-// Standalone routes aliases
-app.get('/standalone/student', (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'student.html'));
-});
-
-app.get('/standalone/teacher', (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'teacher.html'));
-});
-
-app.get('/standalone/admin', (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
-});
-
 // Seed data if first run
 seedDatabase();
 
